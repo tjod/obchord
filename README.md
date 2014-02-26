@@ -1,4 +1,4 @@
 obchord
 =======
 
-CHORD using openbabel
+PostgreSQL extension using CHORD openbabel
