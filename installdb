@@ -1,0 +1,32 @@
+#! /bin/bash -v
+
+VERSION="/usr/lib/postgresql/9.2/"
+PORT=5432
+
+PSQL="$VERSION/bin/psql -p $PORT"
+CREATELANG="$VERSION/bin/createlang -p $PORT"
+
+DB=$1
+if [ -z ${DB} ] ; then
+  echo "You must give the name of the database you wish to use"
+  echo "useage: install db_name"
+  exit
+fi
+OB_SCHEMA=openbabel
+OC_SCHEMA=openchord
+
+$PSQL $DB <<EOSQL
+Create Schema $OC_SCHEMA;
+Comment On Schema $OC_SCHEMA Is 'function for general use with openbabel or rdkit';
+Grant Usage On Schema $OC_SCHEMA to public;
+EOSQL
+sudo -u postgres $CREATELANG plpythonu $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < varbit.sql.in | sudo -u postgres $PSQL $DB
+sed s/_SCHEMA_/$OB_SCHEMA/g < openbabel-core.sql.in | sudo -u postgres $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < bits.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < fragments.sql.in | sudo -u postgres $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < public166keys.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < similarity.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < amw.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < tpsa.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OC_SCHEMA/g < glogp.sql.in | $PSQL $DB

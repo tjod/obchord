@@ -1,0 +1,18 @@
+#! /bin/bash
+
+VERSION="/usr/lib/postgresql/9.2/"
+PORT=5432
+CREATEDB="$VERSION/bin/createdb -p $PORT"
+DROPDB="$VERSION/bin/dropdb -p $PORT"
+
+DB=$1
+if [ -z ${DB} ] ; then
+  echo "You must give the name of the database you wish to use"
+  echo "useage: install db_name"
+  exit
+fi
+
+
+$DROPDB $DB
+$CREATEDB $DB
+bash installdb $DB

@@ -1,0 +1,191 @@
+DROP TABLE If Exists _SCHEMA_.public166keys;
+
+CREATE TABLE _SCHEMA_.public166keys (
+    smarts Text NOT NULL,
+    "bit" integer NOT NULL,
+    count integer,
+    description Text
+);
+Grant Select On _SCHEMA_.public166keys To Public;
+
+COPY _SCHEMA_.public166keys (smarts, "bit", description, count) FROM stdin;
+[!0*]	1	ISOTOPE	0
+[Ge,Sn,Pb,As,Sb,Bi,Se,Te,Po]	3	GROUPIVA,VA,VIAPERIODS4-6(GE..)	0
+[Ac,Th,Pa,U,Np,Pu,Am,Cm,Bk,Cf,Es,Fm,Md,No,Lr]	4	ACTINIDE	0
+[Sc,Y,Ti,Zr,Hf]	5	GROUPIIIB,IVB(SC..)	0
+[La,Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tm,Yb,Lu]	6	LANTHANIDE	0
+[V,Nb,Ta,Cr,Mo,W,Mn,Tc,Re]	7	GROUPVB,VIB,VIIB(V..)	0
+[#7R]	121	NHETEROCYCLE	0
+[Fe,Co,Ni,Ru,Rh,Pd,Os,Ir,Pt]	9	GROUPVIII(FE..)	0
+[Be,Mg,Ca,Sr,Ba,Ra]	10	GROUPIIA(ALKALINEEARTH)	0
+*~[#7](~*)~*	122	AN(A)A	0
+[Cu,Ag,Au,Zn,Cd,Hg]	12	GROUPIB,IIB(CU..)	0
+[#8]~[#7](~[#6])~[#6]	13	ON(C)C	0
+S-S	14	S-S	0
+[#8]~[#6](~[#8])~[#8]	15	OC(O)O	0
+[#8]~[#6]~[#8]	123	OCO	0
+C#C	17	CTC	0
+[B,Al,Ga,In,Tl]	18	GROUPIIIA(B..)	0
+[!#6]~[!#6]	124	QQ	0
+*!@[#8]!@*	126	A!O!A	0
+C=C(~[!#6])~[!#6]	21	C=C(Q)Q	0
+*@*!@[#8]	127	A$A!O>1(&..)	1
+[#7]~[#6](~[#8])~[#8]	23	NC(O)O	0
+[#7]-[#8]	24	N-O	0
+[#7]~[#6](~[#7])~[#7]	25	NC(N)N	0
+[#6]@=[#6](@*)@*	26	C$=C($A)$A	0
+I	27	I	0
+[!#6]~[CH2]~[!#6]	28	QCH2Q	0
+[#15]	29	P	0
+[#6]~[!#6](~[#6])(~[#6])~*	30	CQ(C)(C)A	0
+[!#6]~[F,Cl,Br,I]	31	QX	0
+[#6]~[#16]~[#7]	32	CSN	0
+[#7]~[#16]	33	NS	0
+*~[CH2]~*~*~*~[CH2]~*	128	ACH2AAACH2A	0
+[Li,Na,K,Rb,Cs,Fr]	35	GROUPIA(ALKALIMETAL)	0
+[#16&R]	36	SHETEROCYCLE	0
+[#7]~[#6](~[#8])~[#7]	37	NC(O)N	0
+[#7]~[#6](~[#6])~[#7]	38	NC(C)N	0
+[#8]~[#16](~[#8])~[#8]	39	OS(O)O	0
+[#16]-[#8]	40	S-O	0
+C#N	41	CTN	0
+F	42	F	0
+[!#6&!H0]~*~[!#6&!H0]	43	QHAQH	0
+[!#6!#7!#8!#15!#16!#9!#17!#35]	44	OTHER	0
+C=C~[#7]	45	C=CN	0
+Br	46	BR	0
+[#16]~*~[#7]	47	SAN	0
+[#8]~[!#6](~[#8])~[#8]	48	OQ(O)O	0
+[!+0]	49	CHARGE	0
+C=C(~[#6])~[#6]	50	C=C(C)C	0
+[#6]~[#16]~[#8]	51	CSO	0
+[#7]~[#7]	52	NN	0
+[!#6&!H0]~*~*~*~[!#6&!H0]	53	QHAAAQH	0
+[!#6&!H0]~*~*~[!#6&!H0]	54	QHAAQH	0
+[#8]~[#16]~[#8]	55	OSO	0
+[#8]~[#7](~[#8])~[#6]	56	ON(O)C	0
+[#8R]	57	OHETEROCYCLE	0
+[!#6]~[#16]~[!#6]	58	QSQ	0
+[#16]!:*:*	59	Snot%A%A	0
+S=O	60	S=O	0
+*~[#16](~*)~*	61	AS(A)A	0
+*@*!@*@*	62	A$A!A$A	0
+N=O	63	N=O	0
+*@*!@[#16]	64	A$A!S	0
+c:n	65	C%N	0
+[#6]~[#6](~[#6])(~[#6])~*	66	CC(C)(C)A	0
+[!#6]~[#16]	67	QS	0
+[!#6!H0]~[!#6!H0]	68	QHQH(&..)	0
+[!#6]~[!#6!H0]	69	QQH	0
+[!#6!H0]~[!#7]~[!#6!H0]	70	QNQ	0
+[#7]~[#8]	71	NO	0
+[#8]~*~*~[#8]	72	OAAO	0
+S=*	73	S=A	0
+[CH3]~*~[CH3]	74	CH3ACH3	0
+*~[CH2]~*~*~[CH2]~*	129	ACH2AACH2A	0
+C=C(~*)~*	76	C=C(A)A	0
+[#7]~*~[#7]	77	NAN	0
+C=N	78	C=N	0
+[#7]~*~*~[#7]	79	NAAN	0
+[#7]~*~*~*~[#7]	80	NAAAN	0
+[#16]~*(~*)~*	81	SA(A)A	0
+*~[CH2]~[!#6!H0]	82	ACH2QH	0
+[!#6]~[!#6]	130	QQ>1(&..)	1
+[NH2]	84	NH2	0
+[#6]~[#7](~[#6])~[#6]	85	CN(C)C	0
+[CH2]~[!#6]~[CH2]	86	CH2QCH2	0
+[F,Cl,Br,I]!@*@*	87	X!A$A	0
+[#16]	88	S	0
+[#8]~*~*~*~[#8]	89	OAAAO	0
+[!#6!H0]~*~*~[CH2]~*	90	QHAACH2A	0
+[!#6!H0]~*~*~*~[CH2]~*	91	QHAAACH2A	0
+[#8]~[#6](~[#7])~[#6]	92	OC(N)C	0
+[!#6]~[CH3]	93	QCH3	0
+[!#6]~[#7]	94	QN	0
+[#7]~*~*~[#8]	95	NAAO	0
+*~1~*~*~*~*1	96	5MRING	0
+[#7]~*~*~*~[#8]	97	NAAAO	0
+C=C	99	C=C	0
+*~[CH2]~[#7]	100	ACH2N	0
+[R!r3!r4!r5!r6!r7]	101	8MRINGORLARGER	0
+[!#6]~[#8]	102	QO	0
+Cl	103	CL	0
+[!#6!H0]~*~[CH2]~*	104	QHACH2A	0
+*@*(@*)@*	105	A$A($A)$A	0
+[!#6]~*(~[!#6])~[!#6]	106	QA(Q)Q	0
+[F,Cl,Br,I]~*(~*)~*	107	XA(A)A	0
+[CH3]~*~*~*~[CH2]~*	108	CH3AAACH2A	0
+*~[CH2]~[#8]	109	ACH2O	0
+[#7]~[#6]~[#8]	110	NCO	0
+[#7]~*~[CH2]~*	111	NACH2A	0
+*~*(~*)(~*)~*	112	AA(A)(A)A	0
+[#8]!:*:*	113	Onot%A%A	0
+[CH3]~[CH2]~*	114	CH3CH2A	0
+[CH3]~*~[CH2]~*	115	CH3ACH2A	0
+[CH3]~*~*~[CH2]~*	116	CH3AACH2A	0
+[#7]~*~[#8]	117	NAO	0
+*~[CH2]~[CH2]~*	118	ACH2CH2A>1	1
+N=*	119	N=A	0
+[!#6R]	120	HETEROCYLICATOM>1(&..)	1
+[Si]	20	Si	0
+[!#6!H0]	131	QH>1	1
+[#8]~*~[CH2]~*	132	OACH2A	0
+*@*!@[#7]	133	A$A!N	0
+[F,Cl,Br,I]	134	X(HALOGEN)	0
+[#7]!:*:*	135	Nnot%A%A	0
+O=*	136	O=A>1	1
+[!#6R]	137	HETEROCYCLE	0
+[!#6][#6H2]*	138	QCH2A>1(&..)	1
+[OH]	139	OH	0
+[#8]	140	O>3(&..)	3
+[CH3]	141	CH3>2(&..)	2
+[#7]	142	N>1	1
+*@*!@[#8]	143	A$A!O	0
+*!:*:*!:*	144	Anot%A%Anot%A	0
+*~1~*~*~*~*~*1	145	6MRING>1	1
+[#8]	146	O>2	2
+*~[#6H2]~[#6H2]~*	147	ACH2CH2A	0
+*~[!#6](~*)~*	148	AQ(A)A	0
+[CH3]	149	CH3>1	1
+*!@*@*!@*	150	A!A$A!A	0
+[#7H]	151	NH	0
+[#8]~[#6](~[#6])~[#6]	152	OC(C)C	0
+[!#6][#6H2]*	153	QCH2A	0
+[#6]=[#8]	154	C=O	0
+*~!@[CH2&!R]~!@*	155	A!CH2!A	0
+[#7]~*(~*)~*	156	NA(A)A	0
+[#8]	159	O>1	1
+[CH3]	160	CH3	0
+[#7]	161	N	0
+a	162	AROM	0
+*~1~*~*~*~*~*1	163	6MRING	0
+[#8]	164	O	0
+[R]	165	RING	0
+[!#6]~1~*~*~*~1	8	QAAA@1	0
+*~1~*~*~*~1	11	4MRING	0
+[!#6]~1~*~*~1	16	QAA@1	0
+*~1~*~*~*~*~*~*~1	19	7MRING	0
+*~1~*~*~1	22	3MRING	0
+[CH2]=*	34	CH2=A	0
+[!#6]~1~*~*~*~*~*~1	98	QAAAAA@1	0
+*!@[#7]@*	75	A!N$A	0
+[!#6]~1~*~*~*~*~1	83	QAAAA@1	0
+[#6]-[#8]	157	C-O	0
+[#6]-[#7]	158	C-N	0
+\.
+
+COMMENT ON TABLE _SCHEMA_.public166keys IS '166 public keys from MDL, courtesy of Jeremy Yang.';
+
+Create or Replace FUNCTION _SCHEMA_.public166keys(Text) Returns Bit(166) As $EOSQL$
+ Select _SCHEMA_.orsum(_SCHEMA_.bit_set(0::Bit(166), bit))
+  From _SCHEMA_.public166keys Where openbabel.count_matches($1,smarts) > count;
+$EOSQL$ Language SQL Immutable;
+Comment on Function _SCHEMA_.public166keys(Text)
+ Is 'public 166 fragment keys of smiles';
+
+/*
+select smiles,description from _SCHEMA_.public166keys,
+ (select smiles from nci.structure limit 2) atmp
+where _SCHEMA_.isbit_set( _SCHEMA_.public166keys(smiles), bit )
+ order by smiles
+*/

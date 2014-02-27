@@ -1,0 +1,37 @@
+-- aggregate functions
+
+Create AGGREGATE _SCHEMA_.andsum (
+    BASETYPE = bit,
+    SFUNC = bitand,
+    STYPE = bit
+);
+
+Create AGGREGATE _SCHEMA_.orsum (
+    BASETYPE = bit,
+    SFUNC = bitor,
+    STYPE = bit
+);
+
+-- bit operator functions
+
+Create or Replace FUNCTION _SCHEMA_.contains(bit, bit)
+ Returns boolean AS '
+Select $2 = ($1 & $2);
+' LANGUAGE sql IMMUTABLE;
+Comment On FUNCTION _SCHEMA_.contains(bit, bit)
+ Is 'sql equivalent of bit_contains for fixed lengths';
+
+Create or Replace FUNCTION _SCHEMA_.bit_density(bit)
+ Returns real AS '
+Select (_SCHEMA_.nbits_set($1)::real / length($1))::real;
+' LANGUAGE sql IMMUTABLE;
+Comment On FUNCTION _SCHEMA_.bit_density(bit)
+ Is 'useful for analysis of fingerprints';
+
+Create or Replace FUNCTION _SCHEMA_.hex(bit)
+ Returns text AS $EOSQL$
+Select 'X''' || substr(encode(bit_send($1),'hex'),9) ||
+  '''::bit(' || length($1) || ')';
+$EOSQL$ LANGUAGE sql IMMUTABLE;
+Comment On FUNCTION _SCHEMA_.hex(bit)
+ Is 'hexadecimal representation of bit string';

@@ -1,0 +1,132 @@
+DROP TABLE If Exists _SCHEMA_.amw;
+CREATE TABLE _SCHEMA_.amw (
+    atomic_smarts Text,
+    atomic_weight numeric,
+    atomic_symbol character(2)
+);
+Grant Select on _SCHEMA_.amw To Public;
+
+COPY _SCHEMA_.amw (atomic_smarts, atomic_weight, atomic_symbol) FROM stdin;
+[#1]	1.01	H 
+[#2]	4.00	He
+[#3]	6.94	Li
+[#4]	9.01	Be
+[#5]	10.81	B 
+[#6]	12.01	C 
+[#7]	14.01	N 
+[#8]	16.00	O 
+[#9]	19.00	F 
+[#10]	20.18	Ne
+[#11]	22.99	Na
+[#12]	24.31	Mg
+[#13]	26.98	Al
+[#14]	28.09	Si
+[#15]	30.97	P 
+[#16]	32.06	S 
+[#17]	35.45	Cl
+[#18]	39.95	Ar
+[#19]	39.10	K 
+[#20]	40.08	Ca
+[#21]	44.96	Sc
+[#22]	47.88	Ti
+[#23]	50.94	V 
+[#24]	52.00	Cr
+[#25]	54.94	Mn
+[#26]	55.85	Fe
+[#27]	58.93	Co
+[#28]	58.69	Ni
+[#29]	63.55	Cu
+[#30]	65.39	Zu
+[#31]	69.72	Ga
+[#32]	72.59	Ge
+[#33]	74.92	As
+[#34]	78.96	Se
+[#35]	79.90	Br
+[#36]	83.80	Kr
+[#37]	85.47	Rb
+[#38]	87.62	Sr
+[#39]	88.91	Y 
+[#40]	91.22	Zr
+[#41]	92.91	Nb
+[#42]	95.94	Mo
+[#43]	98.00	Tc
+[#44]	101.07	Ru
+[#45]	102.91	Rh
+[#46]	106.42	Pd
+[#47]	107.87	Ag
+[#48]	112.41	Cd
+[#49]	114.82	In
+[#50]	118.71	Sn
+[#51]	121.75	Sb
+[#52]	127.60	Te
+[#53]	126.91	I 
+[#54]	131.29	Xe
+[#55]	132.91	Cs
+[#56]	137.34	Ba
+[#57]	138.91	La
+[#58]	140.12	Ce
+[#59]	140.91	Pr
+[#60]	144.24	Nd
+[#61]	145.00	Pm
+[#62]	150.36	Sm
+[#63]	151.96	Eu
+[#64]	157.25	Gd
+[#65]	158.93	Tb
+[#66]	162.50	Dy
+[#67]	164.93	Ho
+[#68]	167.26	Er
+[#69]	168.93	Tm
+[#70]	173.04	Yb
+[#71]	174.97	Lu
+[#72]	178.49	Hf
+[#73]	180.95	Ta
+[#74]	183.85	W 
+[#75]	186.21	Re
+[#76]	190.20	Os
+[#77]	192.22	Ir
+[#78]	195.08	Pt
+[#79]	196.97	Au
+[#80]	200.59	Hg
+[#81]	204.38	Tl
+[#82]	207.20	Pb
+[#83]	208.98	Bi
+[#84]	209.00	Po
+[#85]	210.00	At
+[#86]	222.00	Rn
+[#87]	223.00	Fr
+[#88]	226.03	Ra
+[#89]	227.03	Ac
+[#90]	232.04	Th
+[#91]	231.04	Pa
+[#92]	238.03	U 
+[#93]	237.05	Np
+[#94]	244.00	Pu
+[#95]	243.00	Am
+[#96]	247.00	Cm
+[#97]	247.00	Bk
+[#98]	251.00	Cf
+[#99]	252.00	Es
+[#100]	257.00	Fm
+[#101]	258.00	Md
+[#102]	259.00	No
+[#103]	260.00	Lr
+[*;h1]	1.01	H1
+[*;h2]	2.02	H2
+[*;h3]	3.03	H3
+[*;h4]	4.04	H4
+[*;h5]	5.05	H5
+[*;h6]	6.06	H6
+\.
+
+COMMENT ON TABLE  _SCHEMA_.amw IS 'average molecular weight';
+COMMENT ON COLUMN _SCHEMA_.amw.atomic_smarts IS 'atomic number';
+COMMENT ON COLUMN _SCHEMA_.amw.atomic_weight IS 'average atomic weight';
+COMMENT ON COLUMN _SCHEMA_.amw.atomic_symbol IS 'atomic symbol';
+
+Create OR Replace FUNCTION _SCHEMA_.amw(Text)
+ Returns numeric AS '
+Select sum(atomic_weight*openbabel.count_matches($1,atomic_smarts))
+   from _SCHEMA_.amw;
+' LANGUAGE sql IMMUTABLE;
+Comment on FUNCTION _SCHEMA_.amw(Text)
+ Is 'average molecular weight of smiles';

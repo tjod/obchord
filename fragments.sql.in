@@ -1,0 +1,90 @@
+Create Or Replace Function _SCHEMA_.atoms(smi Text, nbrflag Integer)
+ Returns SetOf text As $EOPY$
+import openchord
+import openbabel
+
+#  array for SetOf return
+retsmarts = []
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ for a in openbabel.OBMolAtomIter(mol):
+  if a.GetAtomicNum() == 1: continue
+  if nbrflag > 0:
+   retsmarts.append(openchord.atom_sym(a,True) + openchord.nbr_smarts(a))
+  else:
+   retsmarts.append(openchord.atom_sym(a,True))
+   if nbrflag == 0:
+    retsmarts.append(openchord.atom_sym(a,True) + openchord.nbr_smarts(a))
+ return retsmarts
+else:
+ # bad mol (bad smiles)
+ return None
+$EOPY$ Language plpythonu Immutable;
+Comment on Function _SCHEMA_.atoms(Text,Integer)
+Is 'return a table of SMARTS of each atom and optionally its nearest neighbors; -1 no neighbors, 0 with neighbors, 1 only neighbors';
+
+Create Or Replace Function _SCHEMA_.bonds(smi Text, nbrflag Integer)
+ Returns SetOf text As $EOPY$
+import openchord
+import openbabel
+
+retsmarts = []
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ for b in openbabel.OBMolBondIter(mol):
+  a1 = b.GetBeginAtom()
+  a2 = b.GetEndAtom()
+  a1sma = openchord.atom_sym(a1,True)
+  a2sma = openchord.atom_sym(a2,True)
+  if nbrflag < 0:
+   a1nbr = ""
+   a2nbr = ""
+  else:
+   a1nbr = openchord.nbr_smarts(a1,a2)
+   a2nbr = openchord.nbr_smarts(a2,a1)
+
+  # use a symbol for every bond type
+  if   b.IsSingle():   bnd = "-"
+  elif b.IsAromatic(): bnd = ":"
+  elif b.IsDouble():   bnd = "="
+  elif b.IsTriple():   bnd = "#"
+  else: bnd = "~"
+
+  if a1sma+a1nbr < a2sma+a2nbr:
+   sma = a1sma + bnd + a2sma
+   if nbrflag < 0:
+    pass
+   else:
+    nbrsma = '[$(' + a1sma + a1nbr + ')]' + bnd + '[$(' + a2sma + a2nbr + ')]'
+  else:
+   sma = a2sma + bnd + a1sma
+   if nbrflag < 0:
+    pass
+   else:
+    nbrsma = '[$(' + a2sma + a2nbr + ')]' + bnd + '[$(' + a1sma + a1nbr + ')]'
+
+  if nbrflag > 0:
+   retsmarts.append(nbrsma)
+  else:
+   retsmarts.append(sma)
+   if nbrflag == 0:
+    retsmarts.append(nbrsma)
+ return retsmarts
+else:
+ return None
+$EOPY$ Language plpythonu Immutable;
+Comment on Function _SCHEMA_.bonds(Text,Integer)
+Is 'return a table of SMARTS of atoms in each bond and optionally their nearest neighbors; -1 no neighbors, 0 with neighbors, 1 only neighbors';
+
+Create Or Replace Function _SCHEMA_.fragments(smi Text, minpath Integer, maxpath Integer, smarts Boolean)
+ Returns SetOf Text As $EOPY$
+import openchord
+oc = openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+paths = openchord.make_mol_paths(mol, minpath, maxpath, smarts)
+return paths
+$EOPY$ Language plpythonu Immutable;
+Comment on Function _SCHEMA_.fragments(Text,Integer,Integer,Boolean)
+Is 'return a table of SMARTS of fragments of length min to max, using atom symbols or smarts with charge and valence';

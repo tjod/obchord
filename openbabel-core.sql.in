@@ -1,0 +1,695 @@
+-- Copyright TJ O'Donnell 2009, 2010
+---------------------------------------------------------------------------------------------------
+-- plpy.error used for smiles, since valid can be used handily to prevent errors
+-- plpy.warning used for smarts and files, since there is no valid_smarts or valid_file function
+---------------------------------------------------------------------------------------------------
+Create Schema _SCHEMA_;
+Comment On Schema _SCHEMA_ Is 'based on python functions from http://openbabel.org/wiki/Main_Page';
+Grant Usage On Schema _SCHEMA_ to public;
+--Create Language plpythonu;
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles(smi text) Returns SetOf Text As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+return oc.smiles(smi)
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.smiles(text)
+Is 'return table of smiles in buffer';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smarts(sma text) Returns SetOf Text As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+return oc.smarts(sma)
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.smarts(text)
+Is 'return table of smarts in buffer';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.valid(smi Text) Returns Boolean As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+if oc.parse_smi(smi):
+  return True
+else:
+  return False
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.valid(text)
+Is 'return true if input smiles is valid';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.cansmiles(smi Text) Returns Text As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+import openbabel
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ mol.SetTitle("")
+#for a in openbabel.OBMolAtomIter(mol):
+# a.UnsetStereo()
+#if mol.NumBonds() > 0:
+# for b in openbabel.OBMolBondIter(mol):
+#  b.UnsetWedge()
+#  b.UnsetHash()
+#  b.UnsetUp()
+#  b.UnsetDown()
+ return oc.writestring(mol,"can","i")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.cansmiles(text)
+Is 'return canonical smiles of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.isosmiles(smi Text) Returns Text As $EOPY$
+#import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ mol.SetTitle("")
+ return oc.writestring(mol,"can")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.isosmiles(text)
+Is 'return canoncal isomeric smiles of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.keksmiles(smi Text) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ mol.SetTitle("")
+ mol.Kekulize()
+ for b in openbabel.OBMolBondIter(mol):
+   b.UnsetAromatic()
+ for a in openbabel.OBMolAtomIter(mol):
+   a.UnsetAromatic()
+ return oc.writestring(mol,"smi")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.keksmiles(text)
+Is 'return kekule smiles of input smiles.  Currently not working ';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.impsmiles(smi Text) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+# make copy in order to alter mol
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ mol.SetTitle("")
+ mol.AddHydrogens()
+ return oc.writestring(mol,"smi","h")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.impsmiles(text)
+Is 'return implicit-H smiles of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles_to_symbols(smi Text) Returns Text[] As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ tbl = openbabel.OBElementTable()
+ return [tbl.GetSymbol(a.GetAtomicNum()) for a in openbabel.OBMolAtomIter(mol)]
+
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.smiles_to_symbols(text)
+Is 'return array of atomic symbols of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles_to_bond_set(smi Text) Returns Setof Integer[] As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ bonds = list()
+ if mol.NumBonds() < 1:
+  return None
+ for b in openbabel.OBMolBondIter(mol):
+  bo = 4 if b.IsAromatic() else b.GetBO()
+  bonds.append ( (b.GetBeginAtomIdx(), b.GetEndAtomIdx(), bo) )
+ return (bonds)
+
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.smiles_to_bond_set(text)
+Is 'return set of bonds (atom,atom,bond order) of input smiles';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles_to_bonds(smi Text) Returns Integer[] As $EOSQL$
+Declare
+  bond Integer[];
+  bonds Integer[];
+Begin
+  For bond In Select _SCHEMA_.smiles_to_bond_set(smi) Loop
+    bonds = bonds || array[bond];
+  End Loop;
+  Return bonds;
+End
+$EOSQL$ Language plpgsql Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.smiles_to_bonds(text)
+Is 'return array of bonds (atom,atom,bond order) of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.input_formats() Returns SetOf Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+return oc.input_formats()
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.input_formats()
+Is 'return valid input format extensions and descriptions';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.output_formats() Returns SetOf Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+return oc.output_formats()
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.output_formats()
+Is 'return valid output format extensions and descriptions';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.output_extensions() Returns SetOf Text As $EOSQL$
+ Select (regexp_split_to_array(_SCHEMA_.output_formats(),' -- '))[1];
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.output_extensions()
+Is 'return valid output format extensions';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.input_extensions() Returns SetOf Text As $EOSQL$
+ Select (regexp_split_to_array(_SCHEMA_.input_formats(),' -- '))[1];
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.input_extensions()
+Is 'return valid input format extensions';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.anyformat_to_anyformat(infil Bytea, infmt Text, outfmt Text, outopt Text) Returns Bytea As $EOPY$
+if infil == None or infmt == None or outfmt == None: return None
+import openchord
+import openbabel
+oc=openchord.openchord(GD)
+amol = oc.parse_format(infil,infmt)
+if amol:
+  mol = openbabel.OBMol(amol)
+  #if "%" in outopt: mol.DeleteNonPolarHydrogens()
+  if outopt != None and "%" in outopt: mol.DeleteHydrogens()
+  if outopt != None and "#" in outopt: mol.SetTitle("")
+else:
+  plpy.warning("Error parsing input text")
+  return None
+try:
+  return oc.writestring(mol,outfmt,outopt)
+except:
+  plpy.warning("Error writing output format")
+  return None
+$EOPY$ Language plpythonu Immutable;
+Comment On FUNCTION _SCHEMA_.anyformat_to_anyformat(bytea,text,text,text)
+Is 'return file converted from input file.  CAUTION: using incorrect format type for input text can crash server!';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.anyformat_to_anyformat(infil Bytea, infmt Text, outfmt Text) Returns Bytea As $EOSQL$
+ Select _SCHEMA_.anyformat_to_anyformat($1, $2, $3, Null); 
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.anyformat_to_anyformat(bytea,text,text)
+Is 'return file converted from input file.  CAUTION: using incorrect format type for input text can crash server!';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.textformat_to_textformat(infil Text, infmt Text, outfmt Text, outopt Text)
+ Returns Text As $EOSQL$
+ Select encode(_SCHEMA_.anyformat_to_anyformat(convert_to($1,'utf8'), $2, $3, $4),'escape');
+$EOSQL$ Language SQL Immutable;
+Comment On FUNCTION _SCHEMA_.textformat_to_textformat(text,text,text,text)
+Is 'return "file" converted from input "file".';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.textformat_to_textformat(infil Text, infmt Text, outfmt Text) Returns Text As $EOSQL$
+ Select _SCHEMA_.textformat_to_textformat($1, $2, $3, Null);
+$EOSQL$ Language SQL Immutable;
+Comment On FUNCTION _SCHEMA_.textformat_to_textformat(text,text,text)
+Is 'return "file" converted from input "file".';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles_to_molfile(smi Text) Returns Text As $EOSQL$
+ Select _SCHEMA_.textformat_to_textformat($1, 'smi', 'mol', Null);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.smiles_to_molfile(text)
+Is 'return "molfile" converted from input smiles';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.molfile_to_smiles(molfil Text) Returns Text As $EOSQL$
+  Select _SCHEMA_.textformat_to_textformat($1, 'mol', 'smi', '#')
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.molfile_to_smiles(text)
+Is 'return smiles from input "molfile"';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.matches(smi Text, sma Text) Returns Boolean As $EOPY$
+#import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+
+ pat = oc.parse_sma(sma)
+ if pat:
+  return pat.Match(mol)
+ else:
+  plpy.warning("Error in input smarts")
+  return None
+
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.matches(text, text)
+Is 'return true if input smiles in arg#1 matches input smarts in arg#2';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.count_matches(smi Text, sma Text) Returns Integer As $EOPY$
+#import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+
+ pat = oc.parse_sma(sma)
+ if pat:
+  if pat.Match(mol):
+   return len(pat.GetUMapList())
+  else:
+   return 0
+ else:
+  plpy.warning("Error in input smarts")
+  return None
+
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.count_matches(text, text)
+Is 'return number of times input smiles in arg#1 matches input smarts in arg#2';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.list_match(smi Text, sma Text, imatch Integer, istart Integer) Returns Integer[] As $EOPY$
+#import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+
+ pat = oc.parse_sma(sma)
+ if pat:
+  if pat.Match(mol):
+   i = 0
+   for p in pat.GetUMapList():
+    i += 1
+    amatch = [a-1+istart for a in p]
+    if i == imatch: break
+   return amatch
+  else:
+   return None 
+
+ else:
+  plpy.warning("Error in input smarts")
+  return None
+
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.list_match(text, text, integer, integer)
+Is 'return array(s) of atoms of input smiles in arg#1 matching input smarts in arg#2. arg#3 indicates which match. arg#4 indicates index of first atom, typically 1 or 0';
+
+-----------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.list_matches(smi Text, sma Text, imatch Integer, istart Integer) Returns Integer[] As $EOSQL$
+Declare
+  matches Integer[];
+Begin
+  If imatch < 1 Then
+    For i In 1.._SCHEMA_.count_matches(smi, sma) Loop
+      matches = matches || array[_SCHEMA_.list_match(smi, sma, i, istart)];
+    End Loop;
+    Return matches;
+  Else
+    Return _SCHEMA_.list_match(smi, sma, imatch, istart);
+  End If;
+End
+$EOSQL$ Language plpgsql Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.list_matches(Text, Text, Integer, Integer)
+Is 'return array(s) of atoms of input smiles in arg#1 matching input smarts in arg#2. arg#3 indicates which match. arg#4 indicates index of first atom, typically 1 or 0';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.list_matches(Text, Text) Returns Integer[] As $EOSQL$
+ Select _SCHEMA_.list_matches($1, $2, 1, 0);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.list_matches(text, text)
+Is 'return array of atoms of input smiles in arg#1 in first match of input smarts in arg#2. same as list_matches($1, $2, 1, 0)';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.list_matches(Text, Text, Integer) Returns Integer[] As $EOSQL$
+ Select _SCHEMA_.list_matches($1, $2, $3, 0);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.list_matches(text, text, integer)
+Is 'return array(s) of atoms of input smiles in arg#1 matching input smarts in arg#2. arg#3 indicates which match. same as list_matches($1, $2, $3, 0)';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.fp(smi Text, nbits Integer) Returns Bit As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+return "X" + oc.fingerprint(mol,nbits)
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.fp(text,integer)
+Is 'return nbits-sized fingerprint of input smiles';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.fp(smi Text) Returns Bit As $EOSQL$
+ Select _SCHEMA_.fp($1, 1024);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.fp(text)
+Is 'return default 1024-bit fingerprint of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create or Replace FUNCTION _SCHEMA_.contains(Bit, Bit) Returns Boolean As $EOSQL$
+ Select $2 = ($1 & $2);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.contains(bit, bit)
+ Is 'return true if first bit string contain all the bits of second';
+
+---------------------------------------------------------------------------------------------------
+--Drop Type _SCHEMA_.named_property Cascade;
+Create Type _SCHEMA_.named_property As (name Text, value Text, tagorder integer);
+Comment On Type _SCHEMA_.named_property
+Is 'composite data type used in molfile_properties containing name/value pairs for each molfile tag';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.molfile_properties(molfil Text) Returns SetOf _SCHEMA_.named_property As $EOPY$
+#import pybel
+#mol = pybel.readstring("sdf", molfil)
+#return mol.data.iteritems()
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_format(molfil,"sdf")
+if mol:
+ pairdata = list()
+ tagorder = 1
+ for d in mol.GetData():
+  if openbabel.toPairData(d).GetDataType() == openbabel.PairData:
+   pairdata.append((d.GetAttribute(), d.GetValue(), tagorder))
+   tagorder += 1
+ return pairdata
+else:
+ print "Error parsing molfile"
+ return [None]
+
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.molfile_properties(text)
+Is 'return all named_property data type from input molfile containing name/value pairs';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.molfile_property(molfil Text, fname Text) Returns SetOf Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_format(molfil,"sdf")
+if mol:
+ vals = list()
+ for d in mol.GetData():
+  if openbabel.toPairData(d).GetDataType() == openbabel.PairData:
+   if d.GetAttribute() == fname:
+     vals.append(d.GetValue())
+ return vals   
+else:
+ print "Error parsing molfile"
+ return [None]
+
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.molfile_property(text,text)
+Is 'return all values of named property from input molfile containing name/value pairs';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.molfile_property(molfil Text, fname Text, itag Integer) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_format(molfil,"sdf")
+ntag = 0
+if mol:
+ for d in mol.GetData():
+  if openbabel.toPairData(d).GetDataType() == openbabel.PairData:
+   if d.GetAttribute() == fname:
+     ntag += 1
+     if ntag == itag: return d.GetValue()
+ return None
+else:
+ print "Error parsing molfile"
+ return None
+
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.molfile_property(text,text,integer)
+Is 'return one value of named property from input molfile containing name/value pairs';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.graph(smi Text) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+# make copy in order to alter mol
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ pass
+else:
+ return None
+
+hcount = 0
+for a in openbabel.OBMolAtomIter(mol):
+  hcount += a.ImplicitHydrogenCount() + a.ExplicitHydrogenCount()
+if mol.NumBonds() > 0:
+ for b in openbabel.OBMolBondIter(mol):
+   b.SetBondOrder(1)
+   b.UnsetAromatic()
+for a in openbabel.OBMolAtomIter(mol):
+  a.UnsetAromatic()
+  a.SetFormalCharge(0)
+
+return oc.writestring(mol,"can","i") + '.H' + str(hcount)
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.graph(text)
+Is 'return graph of input smiles, i.e. atom symbols and connectivity with all bond orders set to one, followed by H atom count.  useful for comparing tautomers';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.inchi(smi Text) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+import openbabel
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ mol.SetTitle("")
+ return oc.writestring(mol,"inchi")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.inchi(text)
+Is 'return InChi representation of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.inchikey(smi Text) Returns Text As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+import openbabel
+mol = openbabel.OBMol(oc.parse_smi(smi))
+if mol:
+ mol.SetTitle("")
+ return oc.writestring(mol,"inchi","K")
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.inchikey(text)
+Is 'return InChi key representation of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.smiles_to_obmol(smi Text) Returns Bytea As $EOPY$
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+  return openchord.mol2amol(mol)
+else:
+  return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.obmol_to_smiles(obmol Bytea) Returns Text As $EOPY$
+import openchord
+#import openbabel
+oc=openchord.openchord(GD)
+mol = openchord.amol2mol(obmol)
+return oc.writestring(mol,"can")
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.avg_mw(smi Text) Returns Double Precision As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ return mol.GetMolWt()
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.avg_mw(text)
+Is 'return average molecular weight of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.exact_mass(smi Text) Returns Double Precision As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ return mol.GetExactMass()
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.exact_mass(text)
+Is 'return exact mass of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.rot_bonds(smi Text) Returns Integer As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ return mol.NumRotors()
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.rot_bonds(text)
+Is 'return number or rotatable bonds of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.logp(smi Text) Returns Float As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ desc = openbabel.OBDescriptor_FindType("logP")
+ return desc.Predict(mol)
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.logp(text)
+Is 'return octanol/water partition coefficient of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.tpsa(smi Text) Returns Float As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ desc = openbabel.OBDescriptor_FindType("TPSA")
+ return desc.Predict(mol)
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.tpsa(text)
+Is 'return topological polar surface area of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.hb_donors(smi Text) Returns Integer As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ desc = openbabel.OBDescriptor_FindType("HBD")
+ return int(desc.Predict(mol))
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.hb_donors(text)
+Is 'return number of hydrogen bond donors of input smiles';
+
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.hb_acceptors(smi Text) Returns Integer As $EOPY$
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ desc = openbabel.OBDescriptor_FindType("HBA1")
+ return int(desc.Predict(mol))
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.hb_acceptors(text)
+Is 'return number of hydrogen bond acceptors of input smiles';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.substructure(smi Text, atomlists Integer[]) Returns Text As $EOSQL$
+-- plpython only accepts one-dimensional arrays, so use plpgsql to slice a 2D array
+Declare
+ subsets Text = '';
+ atoms Integer[];
+Begin
+  Foreach atoms Slice 1 In Array atomlists
+  Loop
+    subsets := subsets || _SCHEMA_.substructure1(smi, atoms) || '.';
+  End Loop;
+  Return rtrim(subsets, '.');
+End
+$EOSQL$ Language plpgsql Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.substructure(text,integer[])
+Is 'return smiles or smarts containing only atoms in input list';
+-----------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.substructure1(smi Text, atoms Integer[]) Returns Text As $EOPY$
+# plpython only accepts one-dimensional arrays, so use plpgsql to slice a 2D array
+import openbabel
+import openchord
+oc=openchord.openchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+# 1D array of atoms
+  submol = oc.substructure(mol, atoms)
+  return oc.writestring(submol,"smi") 
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.substructure(text,integer[])
+Is 'return smiles or smarts containing only atoms in input list';
+---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.release() Returns Text As $EOPY$
+import openbabel
+return openbabel.OBReleaseVersion()
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.release()
+Is 'return release version';
