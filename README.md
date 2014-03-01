@@ -1,4 +1,4 @@
 obchord
 =======
 
-PostgreSQL extension using CHORD openbabel
+PostgreSQL extension for Chemical Objects in a Relational Database (CHORD) and openbabel
