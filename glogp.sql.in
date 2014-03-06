@@ -1,12 +1,12 @@
-CREATE TABLE _SCHEMA_.glogp (
+CREATE TABLE _OCSCHEMA_.glogp (
     smarts character varying,
     train_freq integer,
     coefficient numeric(5,3),
     error numeric(5,3)
 );
-Grant Select on _SCHEMA_.glogp To Public;
+Grant Select on _OCSCHEMA_.glogp To Public;
 
-COPY _SCHEMA_.glogp (smarts, train_freq, coefficient, error) FROM stdin;
+COPY _OCSCHEMA_.glogp (smarts, train_freq, coefficient, error) FROM stdin;
 [$([N+0v3H0D2](=C)(Cl))]	1	\N	\N
 [$([S+0v2H0D2](C)(S))]	1	\N	\N
 [$([C+0v4H0D2](#C)(c))]	2	\N	\N
@@ -314,11 +314,11 @@ COPY _SCHEMA_.glogp (smarts, train_freq, coefficient, error) FROM stdin;
 [$([S+0v6H0D4](=O)(=O)(N)(c))]	63	-0.210	0.193
 \.
 
-Create OR Replace FUNCTION _SCHEMA_.glogp(Text)
+Create OR Replace FUNCTION _OCSCHEMA_.glogp(Text)
  Returns numeric AS '
  
-Select sum(coefficient*openbabel.count_matches($1,smarts))
-   from _SCHEMA_.glogp;
+Select sum(coefficient*_SCHEMA_.count_matches($1,smarts))
+   from _OCSCHEMA_.glogp;
 ' LANGUAGE sql IMMUTABLE;
-Comment on FUNCTION _SCHEMA_.glogp(Text)
+Comment on FUNCTION _OCSCHEMA_.glogp(Text)
  Is 'glogP using gNova fragments';

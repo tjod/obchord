@@ -12,8 +12,12 @@ if [ -z ${DB} ] ; then
   echo "useage: install db_name"
   exit
 fi
-OB_SCHEMA=openbabel
-OC_SCHEMA=openchord
+# These schema names can be changed.
+# There is some overlap of functions, e.g. ob.tpsa and oc.tpsa
+#  so using the same schema is not recommended.  Using public
+#  for either one (but probably not both) is fine.
+OB_SCHEMA=ob
+OC_SCHEMA=oc
 
 $PSQL $DB <<EOSQL
 Create Schema $OC_SCHEMA;
@@ -21,12 +25,11 @@ Comment On Schema $OC_SCHEMA Is 'function for general use with openbabel or rdki
 Grant Usage On Schema $OC_SCHEMA to public;
 EOSQL
 sudo -u postgres $CREATELANG plpythonu $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < varbit.sql.in | sudo -u postgres $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < varbit.sql.in | sudo -u postgres $PSQL $DB
 sed s/_SCHEMA_/$OB_SCHEMA/g < openbabel-core.sql.in | sudo -u postgres $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < bits.sql.in | $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < fragments.sql.in | sudo -u postgres $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < public166keys.sql.in | $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < similarity.sql.in | $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < amw.sql.in | $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < tpsa.sql.in | $PSQL $DB
-sed s/_SCHEMA_/$OC_SCHEMA/g < glogp.sql.in | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < bits.sql.in | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < public166keys.sql.in | sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < similarity.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < amw.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < tpsa.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < glogp.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB

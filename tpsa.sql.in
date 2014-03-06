@@ -1,12 +1,12 @@
-Drop Table If Exists _SCHEMA_.tpsa;
-CREATE TABLE _SCHEMA_.tpsa (
+Drop Table If Exists _OCSCHEMA_.tpsa;
+CREATE TABLE _OCSCHEMA_.tpsa (
     atom_psa numeric,
     smarts Text,
     description Text
 );
-Grant Select On _SCHEMA_.tpsa To Public;
+Grant Select On _OCSCHEMA_.tpsa To Public;
 
-COPY _SCHEMA_.tpsa (atom_psa, smarts, description) FROM stdin;
+COPY _OCSCHEMA_.tpsa (atom_psa, smarts, description) FROM stdin;
 23.79	[N0;H0;D1;v3]	N#
 23.85	[N+0;H1;D1;v3]	[NH]=
 26.02	[N+0;H2;D1;v3]	[NH2]-
@@ -52,14 +52,14 @@ COPY _SCHEMA_.tpsa (atom_psa, smarts, description) FROM stdin;
 33.03	N=[N+]=[N-]	23.79 + 13.6 - 4.36\r\n(N#) + (=N#) - (-[N+]#)\r\nfix to make charged-separated spelling work
 \.
 
-COMMENT ON TABLE _SCHEMA_.tpsa IS 'topological polar surface area
+COMMENT ON TABLE _OCSCHEMA_.tpsa IS 'topological polar surface area
 Ertl, P., Rohde, B., Selzer, P. Fast calculation of molecular polar surface area as a sum of fragment based contributions and its application to the prediction of drug transport properties. J. Med. Chem. 2000, 43, 3714-3717.';
-COMMENT ON COLUMN _SCHEMA_.tpsa.atom_psa IS 'parameterized partial surface area of atom fragment';
-COMMENT ON COLUMN _SCHEMA_.tpsa.smarts IS 'fragment smarts';
-COMMENT ON COLUMN _SCHEMA_.tpsa.description IS 'pseudo-smarts description and more';
+COMMENT ON COLUMN _OCSCHEMA_.tpsa.atom_psa IS 'parameterized partial surface area of atom fragment';
+COMMENT ON COLUMN _OCSCHEMA_.tpsa.smarts IS 'fragment smarts';
+COMMENT ON COLUMN _OCSCHEMA_.tpsa.description IS 'pseudo-smarts description and more';
 
 
-Create OR Replace FUNCTION _SCHEMA_.tpsa(Text)
+Create OR Replace FUNCTION _OCSCHEMA_.tpsa(Text)
  Returns numeric AS '
 
 --  For description of the methodology see :
@@ -68,8 +68,8 @@ Create OR Replace FUNCTION _SCHEMA_.tpsa(Text)
 --  Contributions and Its Application to the Prediction of Drug Transport
 --  Properties, J.Med.Chem. 43, 3714-3717, 2000
 
-Select sum(atom_psa*openbabel.count_matches($1,smarts))
-   from _SCHEMA_.tpsa;
+Select sum(atom_psa*_SCHEMA_.count_matches($1,smarts))
+   from _OCSCHEMA_.tpsa;
 ' LANGUAGE sql IMMUTABLE;
-Comment on FUNCTION _SCHEMA_.tpsa(Text)
+Comment on FUNCTION _OCSCHEMA_.tpsa(Text)
  Is 'polar surface area of smiles, by Ertl''s method';

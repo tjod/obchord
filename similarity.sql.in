@@ -1,66 +1,66 @@
 -- Similarity functions
-Create or Replace FUNCTION _SCHEMA_.tanimoto(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.tanimoto(bit, bit)
  Returns real AS '
-Select _SCHEMA_.nbits_set($1 & $2)::real /
-      (_SCHEMA_.nbits_set($1 & ~$2) + _SCHEMA_.nbits_set($2 & ~$1) +
-       _SCHEMA_.nbits_set($1 & $2))::real;
+Select _OCSCHEMA_.nbits_set($1 & $2)::real /
+      (_OCSCHEMA_.nbits_set($1 & ~$2) + _OCSCHEMA_.nbits_set($2 & ~$1) +
+       _OCSCHEMA_.nbits_set($1 & $2))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.tanimoto(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.tanimoto(bit, bit)
  Is 'standard tanimoto similarity of fingerprints';
 
 /*
-Create or Replace FUNCTION _SCHEMA_.tani2(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.tani2(bit, bit)
  Returns real AS '
-Select _SCHEMA_.nbits_set($1 & $2)::real /
-      (_SCHEMA_.nbits_set($1) + _SCHEMA_.nbits_set($2) - _SCHEMA_.nbits_set($1 & $2))::real;
+Select _OCSCHEMA_.nbits_set($1 & $2)::real /
+      (_OCSCHEMA_.nbits_set($1) + _OCSCHEMA_.nbits_set($2) - _OCSCHEMA_.nbits_set($1 & $2))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.tani2(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.tani2(bit, bit)
  Is 'According to the Daylight Theory Manual.';
 
-Create or Replace FUNCTION _SCHEMA_.tani3(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.tani3(bit, bit)
  Returns real AS '
-Select _SCHEMA_.nbits_set($1 & $2)::real /
-       _SCHEMA_.nbits_set($1 | $2)::real;
+Select _OCSCHEMA_.nbits_set($1 & $2)::real /
+       _OCSCHEMA_.nbits_set($1 | $2)::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.tani3(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.tani3(bit, bit)
  Is 'According to Sayle';
 */
 
-Create or Replace FUNCTION _SCHEMA_.euclid(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.euclid(bit, bit)
  Returns real AS '
-Select sqrt((_SCHEMA_.nbits_set($1 & $2) + _SCHEMA_.nbits_set(~$1 & ~$2))::real /
+Select sqrt((_OCSCHEMA_.nbits_set($1 & $2) + _OCSCHEMA_.nbits_set(~$1 & ~$2))::real /
   length($1))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.euclid(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.euclid(bit, bit)
  Is 'standard euclid similarity of fingerprints';
 
-Create or Replace FUNCTION _SCHEMA_.hamming(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.hamming(bit, bit)
  Returns real AS '
-Select ((_SCHEMA_.nbits_set($1 & ~$2) + _SCHEMA_.nbits_set(~$1 & $2))::real /
+Select ((_OCSCHEMA_.nbits_set($1 & ~$2) + _OCSCHEMA_.nbits_set(~$1 & $2))::real /
    length($1))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.hamming(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.hamming(bit, bit)
  Is 'standard hamming similarity of fingerprints';
 
-Create or Replace FUNCTION _SCHEMA_.tversky(bit, bit, real, real)
+Create or Replace FUNCTION _OCSCHEMA_.tversky(bit, bit, real, real)
  Returns real AS '
-Select _SCHEMA_.nbits_set($1 & $2)::real /
-  ($3*_SCHEMA_.nbits_set($1 & ~$2) + $4*_SCHEMA_.nbits_set($2 & ~$1) +
-      _SCHEMA_.nbits_set($1 & $2))::real;
+Select _OCSCHEMA_.nbits_set($1 & $2)::real /
+  ($3*_OCSCHEMA_.nbits_set($1 & ~$2) + $4*_OCSCHEMA_.nbits_set($2 & ~$1) +
+      _OCSCHEMA_.nbits_set($1 & $2))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.tversky(bit, bit, real, real)
+Comment On FUNCTION _OCSCHEMA_.tversky(bit, bit, real, real)
  Is 'standard tversky similarity of fingerprints';
 
-Create or Replace FUNCTION _SCHEMA_.similarity(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.similarity(bit, bit)
  Returns real AS '
-Select _SCHEMA_.tversky($1, $2, 0.5, 0.5);
+Select _OCSCHEMA_.tversky($1, $2, 0.5, 0.5);
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.similarity(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.similarity(bit, bit)
  Is 'standard dice similarity of fingerprints';
                                                                                 
-Create or Replace FUNCTION _SCHEMA_.similarity(Text, Text)
+Create or Replace FUNCTION _OCSCHEMA_.similarity(Text, Text)
  Returns real AS '
-Select _SCHEMA_.tversky(_SCHEMA_.public166keys($1), _SCHEMA_.public166keys($2), 0.5, 0.5);
+Select _OCSCHEMA_.tversky(_OCSCHEMA_.public166keys($1), _OCSCHEMA_.public166keys($2), 0.5, 0.5);
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.similarity(Text, Text)
+Comment On FUNCTION _OCSCHEMA_.similarity(Text, Text)
  Is 'standard dice similarity of smiles using public166key';

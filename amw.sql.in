@@ -1,12 +1,12 @@
-DROP TABLE If Exists _SCHEMA_.amw;
-CREATE TABLE _SCHEMA_.amw (
+DROP TABLE If Exists _OCSCHEMA_.amw;
+CREATE TABLE _OCSCHEMA_.amw (
     atomic_smarts Text,
     atomic_weight numeric,
     atomic_symbol character(2)
 );
-Grant Select on _SCHEMA_.amw To Public;
+Grant Select on _OCSCHEMA_.amw To Public;
 
-COPY _SCHEMA_.amw (atomic_smarts, atomic_weight, atomic_symbol) FROM stdin;
+COPY _OCSCHEMA_.amw (atomic_smarts, atomic_weight, atomic_symbol) FROM stdin;
 [#1]	1.01	H 
 [#2]	4.00	He
 [#3]	6.94	Li
@@ -118,15 +118,15 @@ COPY _SCHEMA_.amw (atomic_smarts, atomic_weight, atomic_symbol) FROM stdin;
 [*;h6]	6.06	H6
 \.
 
-COMMENT ON TABLE  _SCHEMA_.amw IS 'average molecular weight';
-COMMENT ON COLUMN _SCHEMA_.amw.atomic_smarts IS 'atomic number';
-COMMENT ON COLUMN _SCHEMA_.amw.atomic_weight IS 'average atomic weight';
-COMMENT ON COLUMN _SCHEMA_.amw.atomic_symbol IS 'atomic symbol';
+COMMENT ON TABLE  _OCSCHEMA_.amw IS 'average molecular weight';
+COMMENT ON COLUMN _OCSCHEMA_.amw.atomic_smarts IS 'atomic number';
+COMMENT ON COLUMN _OCSCHEMA_.amw.atomic_weight IS 'average atomic weight';
+COMMENT ON COLUMN _OCSCHEMA_.amw.atomic_symbol IS 'atomic symbol';
 
-Create OR Replace FUNCTION _SCHEMA_.amw(Text)
+Create OR Replace FUNCTION _OCSCHEMA_.amw(Text)
  Returns numeric AS '
-Select sum(atomic_weight*openbabel.count_matches($1,atomic_smarts))
-   from _SCHEMA_.amw;
+Select sum(atomic_weight*_SCHEMA_.count_matches($1,atomic_smarts))
+   from _OCSCHEMA_.amw;
 ' LANGUAGE sql IMMUTABLE;
-Comment on FUNCTION _SCHEMA_.amw(Text)
+Comment on FUNCTION _OCSCHEMA_.amw(Text)
  Is 'average molecular weight of smiles';

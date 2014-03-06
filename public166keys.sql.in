@@ -1,14 +1,14 @@
-DROP TABLE If Exists _SCHEMA_.public166keys;
+DROP TABLE If Exists _OCSCHEMA_.public166keys;
 
-CREATE TABLE _SCHEMA_.public166keys (
+CREATE TABLE _OCSCHEMA_.public166keys (
     smarts Text NOT NULL,
     "bit" integer NOT NULL,
     count integer,
     description Text
 );
-Grant Select On _SCHEMA_.public166keys To Public;
+Grant Select On _OCSCHEMA_.public166keys To Public;
 
-COPY _SCHEMA_.public166keys (smarts, "bit", description, count) FROM stdin;
+COPY _OCSCHEMA_.public166keys (smarts, "bit", description, count) FROM stdin;
 [!0*]	1	ISOTOPE	0
 [Ge,Sn,Pb,As,Sb,Bi,Se,Te,Po]	3	GROUPIVA,VA,VIAPERIODS4-6(GE..)	0
 [Ac,Th,Pa,U,Np,Pu,Am,Cm,Bk,Cf,Es,Fm,Md,No,Lr]	4	ACTINIDE	0
@@ -174,18 +174,18 @@ a	162	AROM	0
 [#6]-[#7]	158	C-N	0
 \.
 
-COMMENT ON TABLE _SCHEMA_.public166keys IS '166 public keys from MDL, courtesy of Jeremy Yang.';
+COMMENT ON TABLE _OCSCHEMA_.public166keys IS '166 public keys from MDL, courtesy of Jeremy Yang.';
 
-Create or Replace FUNCTION _SCHEMA_.public166keys(Text) Returns Bit(166) As $EOSQL$
- Select _SCHEMA_.orsum(_SCHEMA_.bit_set(0::Bit(166), bit))
-  From _SCHEMA_.public166keys Where openbabel.count_matches($1,smarts) > count;
+Create or Replace FUNCTION _OCSCHEMA_.public166keys(Text) Returns Bit(166) As $EOSQL$
+ Select _OCSCHEMA_.orsum(_OCSCHEMA_.bit_set(0::Bit(166), bit))
+  From _OCSCHEMA_.public166keys Where _SCHEMA_.count_matches($1,smarts) > count;
 $EOSQL$ Language SQL Immutable;
-Comment on Function _SCHEMA_.public166keys(Text)
+Comment on Function _OCSCHEMA_.public166keys(Text)
  Is 'public 166 fragment keys of smiles';
 
 /*
-select smiles,description from _SCHEMA_.public166keys,
+select smiles,description from _OCSCHEMA_.public166keys,
  (select smiles from nci.structure limit 2) atmp
-where _SCHEMA_.isbit_set( _SCHEMA_.public166keys(smiles), bit )
+where _OCSCHEMA_.isbit_set( _OCSCHEMA_.public166keys(smiles), bit )
  order by smiles
 */

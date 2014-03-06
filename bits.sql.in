@@ -1,12 +1,12 @@
 -- aggregate functions
 
-Create AGGREGATE _SCHEMA_.andsum (
+Create AGGREGATE _OCSCHEMA_.andsum (
     BASETYPE = bit,
     SFUNC = bitand,
     STYPE = bit
 );
 
-Create AGGREGATE _SCHEMA_.orsum (
+Create AGGREGATE _OCSCHEMA_.orsum (
     BASETYPE = bit,
     SFUNC = bitor,
     STYPE = bit
@@ -14,24 +14,24 @@ Create AGGREGATE _SCHEMA_.orsum (
 
 -- bit operator functions
 
-Create or Replace FUNCTION _SCHEMA_.contains(bit, bit)
+Create or Replace FUNCTION _OCSCHEMA_.contains(bit, bit)
  Returns boolean AS '
 Select $2 = ($1 & $2);
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.contains(bit, bit)
+Comment On FUNCTION _OCSCHEMA_.contains(bit, bit)
  Is 'sql equivalent of bit_contains for fixed lengths';
 
-Create or Replace FUNCTION _SCHEMA_.bit_density(bit)
+Create or Replace FUNCTION _OCSCHEMA_.bit_density(bit)
  Returns real AS '
-Select (_SCHEMA_.nbits_set($1)::real / length($1))::real;
+Select (_OCSCHEMA_.nbits_set($1)::real / length($1))::real;
 ' LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.bit_density(bit)
+Comment On FUNCTION _OCSCHEMA_.bit_density(bit)
  Is 'useful for analysis of fingerprints';
 
-Create or Replace FUNCTION _SCHEMA_.hex(bit)
+Create or Replace FUNCTION _OCSCHEMA_.hex(bit)
  Returns text AS $EOSQL$
 Select 'X''' || substr(encode(bit_send($1),'hex'),9) ||
   '''::bit(' || length($1) || ')';
 $EOSQL$ LANGUAGE sql IMMUTABLE;
-Comment On FUNCTION _SCHEMA_.hex(bit)
+Comment On FUNCTION _OCSCHEMA_.hex(bit)
  Is 'hexadecimal representation of bit string';
