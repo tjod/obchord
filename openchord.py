@@ -305,32 +305,34 @@ class openchord:
     #  but speeds things up considerably
     #  certainly if an entire table can acutally fit
     # but also if this is the maximum size of a hit list, say from match
+    if not Global.has_key("OB"): Global["OB"] = dict()
+    self.GOB = Global["OB"]
     self.maxsmi = 1000
     self.maxqsmi = 1000
+    if not self.GOB.has_key("mol"): self.GOB["mol"] = dict()
+    self.mol = self.GOB["mol"]
     # pick a reasonable number of smarts patterns you expect to use often,
     # say 166 public keys or even 1000 fragment keys
     self.maxsma = 1000
-    if not Global.has_key("mol"): Global["mol"] = dict()
-    self.mol = Global["mol"]
-    if not Global.has_key("pat"): Global["pat"] = dict()
-    self.pat = Global["pat"]
-    if not Global.has_key("obc"): Global["obc"] = openbabel.OBConversion()
-    self.obc = Global["obc"]
+    if not self.GOB.has_key("pat"): self.GOB["pat"] = dict()
+    self.pat = self.GOB["pat"]
+    if not self.GOB.has_key("obc"): self.GOB["obc"] = openbabel.OBConversion()
+    self.obc = self.GOB["obc"]
     self.obc.SetInFormat("smi")
-#   if not Global.has_key("fobc"): Global["fobc"] = openbabel.OBConversion()
-#   self.fobc = Global["fobc"]
+#   if not self.GOB.has_key("fobc"): self.GOB["fobc"] = openbabel.OBConversion()
+#   self.fobc = self.GOB["fobc"]
 #   self.fobc.SetInAndOutFormats("sdf","can")
-    if not Global.has_key("fmol"): Global["fmol"] = openbabel.OBMol()
-    self.fmol = Global["fmol"]
-    if not Global.has_key('fp'):Global['fp'] = openbabel.vectorUnsignedInt()
-    if not Global.has_key('fpr'):Global['fpr'] = openbabel.OBFingerprint.FindFingerprint('FP2')
-    self.fp = Global["fp"]
-    self.fpr = Global["fpr"]
-    if not Global.has_key("isomapper"): Global["isomapper"] = dict()
-    self.isomapper = Global["isomapper"]
+    if not self.GOB.has_key("fmol"): self.GOB["fmol"] = openbabel.OBMol()
+    self.fmol = self.GOB["fmol"]
+    if not self.GOB.has_key('fp'): self.GOB['fp'] = openbabel.vectorUnsignedInt()
+    if not self.GOB.has_key('fpr'): self.GOB['fpr'] = openbabel.OBFingerprint.FindFingerprint('FP2')
+    self.fp = self.GOB["fp"]
+    self.fpr = self.GOB["fpr"]
+    if not self.GOB.has_key("isomapper"): self.GOB["isomapper"] = dict()
+    self.isomapper = self.GOB["isomapper"]
     self.isomap = openbabel.vpairUIntUInt()
 
-  def smiles(self,smi):
+  def smilesBuffer(self,smi):
     """one, or all keys(smiles) stored in global
     """
     if smi:
@@ -338,7 +340,7 @@ class openchord:
     else:
       return self.mol.keys()
   
-  def smarts(self,sma):
+  def smartsBuffer(self,sma):
     """one, or all keys(smarts) stored in global
     """
     if sma:

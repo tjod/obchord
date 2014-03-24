@@ -1,4 +1,4 @@
-Create Or Replace Function _SCHEMA_.atoms(smi Text, nbrflag Integer)
+Create Or Replace Function _OCSCHEMA_.atoms(smi Text, nbrflag Integer)
  Returns SetOf text As $EOPY$
 import openchord
 import openbabel
@@ -21,10 +21,10 @@ else:
  # bad mol (bad smiles)
  return None
 $EOPY$ Language plpythonu Immutable;
-Comment on Function _SCHEMA_.atoms(Text,Integer)
+Comment on Function _OCSCHEMA_.atoms(Text,Integer)
 Is 'return a table of SMARTS of each atom and optionally its nearest neighbors; -1 no neighbors, 0 with neighbors, 1 only neighbors';
 
-Create Or Replace Function _SCHEMA_.bonds(smi Text, nbrflag Integer)
+Create Or Replace Function _OCSCHEMA_.bonds(smi Text, nbrflag Integer)
  Returns SetOf text As $EOPY$
 import openchord
 import openbabel
@@ -75,10 +75,10 @@ if mol:
 else:
  return None
 $EOPY$ Language plpythonu Immutable;
-Comment on Function _SCHEMA_.bonds(Text,Integer)
+Comment on Function _OCSCHEMA_.bonds(Text,Integer)
 Is 'return a table of SMARTS of atoms in each bond and optionally their nearest neighbors; -1 no neighbors, 0 with neighbors, 1 only neighbors';
 
-Create Or Replace Function _SCHEMA_.fragments(smi Text, minpath Integer, maxpath Integer, smarts Boolean)
+Create Or Replace Function _OCSCHEMA_.fragments(smi Text, minpath Integer, maxpath Integer, smarts Boolean)
  Returns SetOf Text As $EOPY$
 import openchord
 oc = openchord.openchord(GD)
@@ -86,5 +86,5 @@ mol = oc.parse_smi(smi)
 paths = openchord.make_mol_paths(mol, minpath, maxpath, smarts)
 return paths
 $EOPY$ Language plpythonu Immutable;
-Comment on Function _SCHEMA_.fragments(Text,Integer,Integer,Boolean)
+Comment on Function _OCSCHEMA_.fragments(Text,Integer,Integer,Boolean)
 Is 'return a table of SMARTS of fragments of length min to max, using atom symbols or smarts with charge and valence';

@@ -9,21 +9,21 @@ Grant Usage On Schema _SCHEMA_ to public;
 --Create Language plpythonu;
 
 ---------------------------------------------------------------------------------------------------
-Create Or Replace Function _SCHEMA_.smiles(smi text) Returns SetOf Text As $EOPY$
+Create Or Replace Function _SCHEMA_.smilesBuffer(smi text) Returns SetOf Text As $EOPY$
 import openchord
 oc=openchord.openchord(GD)
-return oc.smiles(smi)
+return oc.smilesBuffer(smi)
 $EOPY$ Language plpythonu Immutable;
-Comment On FUNCTION _SCHEMA_.smiles(text)
+Comment On FUNCTION _SCHEMA_.smilesBuffer(text)
 Is 'return table of smiles in buffer';
 
 ---------------------------------------------------------------------------------------------------
-Create Or Replace Function _SCHEMA_.smarts(sma text) Returns SetOf Text As $EOPY$
+Create Or Replace Function _SCHEMA_.smartsBuffer(sma text) Returns SetOf Text As $EOPY$
 import openchord
 oc=openchord.openchord(GD)
-return oc.smarts(sma)
+return oc.smartsBuffer(sma)
 $EOPY$ Language plpythonu Immutable;
-Comment On FUNCTION _SCHEMA_.smarts(text)
+Comment On FUNCTION _SCHEMA_.smartsBuffer(text)
 Is 'return table of smarts in buffer';
 
 ---------------------------------------------------------------------------------------------------
