@@ -10,8 +10,8 @@ Grant Usage On Schema _SCHEMA_ to public;
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.smilesBuffer(smi text) Returns SetOf Text As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 return oc.smilesBuffer(smi)
 $EOPY$ Language plpythonu Immutable;
 Comment On FUNCTION _SCHEMA_.smilesBuffer(text)
@@ -19,8 +19,8 @@ Is 'return table of smiles in buffer';
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.smartsBuffer(sma text) Returns SetOf Text As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 return oc.smartsBuffer(sma)
 $EOPY$ Language plpythonu Immutable;
 Comment On FUNCTION _SCHEMA_.smartsBuffer(text)
@@ -28,8 +28,8 @@ Is 'return table of smarts in buffer';
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.valid(smi Text) Returns Boolean As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 if oc.parse_smi(smi):
   return True
 else:
@@ -40,8 +40,8 @@ Is 'return true if input smiles is valid';
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.cansmiles(smi Text) Returns Text As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 import openbabel
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -65,8 +65,8 @@ Is 'return canonical smiles of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.isosmiles(smi Text) Returns Text As $EOPY$
 #import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  mol.SetTitle("")
@@ -81,8 +81,8 @@ Is 'return canoncal isomeric smiles of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.keksmiles(smi Text) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -103,8 +103,8 @@ Is 'return kekule smiles of input smiles.  Currently not working ';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.impsmiles(smi Text) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 # make copy in order to alter mol
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -121,8 +121,8 @@ Is 'return implicit-H smiles of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.smiles_to_symbols(smi Text) Returns Text[] As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  tbl = openbabel.OBElementTable()
@@ -138,8 +138,8 @@ Is 'return array of atomic symbols of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.smiles_to_bond_set(smi Text) Returns Setof Integer[] As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  bonds = list()
@@ -174,8 +174,8 @@ Is 'return array of bonds (atom,atom,bond order) of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.input_formats() Returns SetOf Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 return oc.input_formats()
 $EOPY$ Language plpythonu Immutable;
 Comment On FUNCTION _SCHEMA_.input_formats()
@@ -183,8 +183,8 @@ Is 'return valid input format extensions and descriptions';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.output_formats() Returns SetOf Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 return oc.output_formats()
 $EOPY$ Language plpythonu Immutable;
 Comment On FUNCTION _SCHEMA_.output_formats()
@@ -205,9 +205,9 @@ Is 'return valid input format extensions';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.anyformat_to_anyformat(infil Bytea, infmt Text, outfmt Text, outopt Text) Returns Bytea As $EOPY$
 if infil == None or infmt == None or outfmt == None: return None
-import openchord
+import obchord
 import openbabel
-oc=openchord.openchord(GD)
+oc=obchord.obchord(GD)
 amol = oc.parse_format(infil,infmt)
 if amol:
   mol = openbabel.OBMol(amol)
@@ -260,8 +260,8 @@ Is 'return smiles from input "molfile"';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.matches(smi Text, sma Text) Returns Boolean As $EOPY$
 #import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
 
@@ -282,8 +282,8 @@ Is 'return true if input smiles in arg#1 matches input smarts in arg#2';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.count_matches(smi Text, sma Text) Returns Integer As $EOPY$
 #import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
 
@@ -307,8 +307,8 @@ Is 'return number of times input smiles in arg#1 matches input smarts in arg#2';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.list_match(smi Text, sma Text, imatch Integer, istart Integer) Returns Integer[] As $EOPY$
 #import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
 
@@ -369,8 +369,8 @@ Is 'return array(s) of atoms of input smiles in arg#1 matching input smarts in a
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.fp(smi Text, nbits Integer) Returns Bit As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 return "X" + oc.fingerprint(mol,nbits)
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
@@ -402,8 +402,8 @@ Create Or Replace Function _SCHEMA_.molfile_properties(molfil Text) Returns SetO
 #mol = pybel.readstring("sdf", molfil)
 #return mol.data.iteritems()
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_format(molfil,"sdf")
 if mol:
  pairdata = list()
@@ -424,8 +424,8 @@ Is 'return all named_property data type from input molfile containing name/value
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.molfile_property(molfil Text, fname Text) Returns SetOf Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_format(molfil,"sdf")
 if mol:
  vals = list()
@@ -445,8 +445,8 @@ Is 'return all values of named property from input molfile containing name/value
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.molfile_property(molfil Text, fname Text, itag Integer) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_format(molfil,"sdf")
 ntag = 0
 if mol:
@@ -467,8 +467,8 @@ Is 'return one value of named property from input molfile containing name/value 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.graph(smi Text) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 # make copy in order to alter mol
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -495,8 +495,8 @@ Is 'return graph of input smiles, i.e. atom symbols and connectivity with all bo
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.inchi(smi Text) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 import openbabel
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -512,8 +512,8 @@ Is 'return InChi representation of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.inchikey(smi Text) Returns Text As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 import openbabel
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
@@ -528,28 +528,28 @@ Is 'return InChi key representation of input smiles';
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.smiles_to_obmol(smi Text) Returns Bytea As $EOPY$
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
-  return openchord.mol2amol(mol)
+  return obchord.mol2amol(mol)
 else:
   return None
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.obmol_to_smiles(obmol Bytea) Returns Text As $EOPY$
-import openchord
+import obchord
 #import openbabel
-oc=openchord.openchord(GD)
-mol = openchord.amol2mol(obmol)
+oc=obchord.obchord(GD)
+mol = obchord.amol2mol(obmol)
 return oc.writestring(mol,"can")
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
 
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.avg_mw(smi Text) Returns Double Precision As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  return mol.GetMolWt()
@@ -563,8 +563,8 @@ Is 'return average molecular weight of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.exact_mass(smi Text) Returns Double Precision As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  return mol.GetExactMass()
@@ -578,8 +578,8 @@ Is 'return exact mass of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.rot_bonds(smi Text) Returns Integer As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  return mol.NumRotors()
@@ -593,8 +593,8 @@ Is 'return number or rotatable bonds of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.logp(smi Text) Returns Float As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  desc = openbabel.OBDescriptor_FindType("logP")
@@ -609,8 +609,8 @@ Is 'return octanol/water partition coefficient of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.tpsa(smi Text) Returns Float As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  desc = openbabel.OBDescriptor_FindType("TPSA")
@@ -625,8 +625,8 @@ Is 'return topological polar surface area of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.hb_donors(smi Text) Returns Integer As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  desc = openbabel.OBDescriptor_FindType("HBD")
@@ -641,8 +641,8 @@ Is 'return number of hydrogen bond donors of input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.hb_acceptors(smi Text) Returns Integer As $EOPY$
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  desc = openbabel.OBDescriptor_FindType("HBA1")
@@ -673,8 +673,8 @@ Is 'return smiles or smarts containing only atoms in input list';
 Create Or Replace Function _SCHEMA_.substructure1(smi Text, atoms Integer[]) Returns Text As $EOPY$
 # plpython only accepts one-dimensional arrays, so use plpgsql to slice a 2D array
 import openbabel
-import openchord
-oc=openchord.openchord(GD)
+import obchord
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
 # 1D array of atoms

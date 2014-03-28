@@ -1,5 +1,5 @@
 import sys
-import openchord
+import obchord
 import openbabel
 
 def obmol(imol, mol):
@@ -7,7 +7,7 @@ def obmol(imol, mol):
     name = mol.GetTitle()
     mol.SetTitle("")
     if name == "": name = "\\N"
-    print str(imol) + "\t" + name + "\t" + oc.writestring(mol,"can","i") + "\t" + oc.writestring(mol,"can").replace("\\","\\\\") + "\t\\X" + oc.fingerprint(mol)
+    print str(imol) + "\t" + name + "\t" + oc.writestring(mol,"can","i") + "\t" + oc.writestring(mol,"can").replace("\\","\\\\") + "\t\\X" + oc.fingerprint(mol, 1024)
   else:
     print str(imol) + "\t\\N\t\\N\t\\N\t\\N"
 
@@ -65,7 +65,7 @@ Create Table properties (
 newCopy(properties)
 
 GD = dict()
-oc = openchord.openchord(GD)
+oc = obchord.obchord(GD)
 molblock = list()
 imol = 0
 obconversion = openbabel.OBConversion()

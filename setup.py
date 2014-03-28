@@ -1,7 +1,7 @@
 import openbabel
 from distutils.core import setup
-setup(name='openchord',
+setup(name='obchord',
       version='1.0',
-      py_modules=['openchord'],
+      py_modules=['obchord'],
       )
 

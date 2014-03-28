@@ -1,21 +1,21 @@
 Create Or Replace Function _OCSCHEMA_.atoms(smi Text, nbrflag Integer)
  Returns SetOf text As $EOPY$
-import openchord
+import obchord
 import openbabel
 
 #  array for SetOf return
 retsmarts = []
-oc=openchord.openchord(GD)
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  for a in openbabel.OBMolAtomIter(mol):
   if a.GetAtomicNum() == 1: continue
   if nbrflag > 0:
-   retsmarts.append(openchord.atom_sym(a,True) + openchord.nbr_smarts(a))
+   retsmarts.append(obchord.atom_sym(a,True) + obchord.nbr_smarts(a))
   else:
-   retsmarts.append(openchord.atom_sym(a,True))
+   retsmarts.append(obchord.atom_sym(a,True))
    if nbrflag == 0:
-    retsmarts.append(openchord.atom_sym(a,True) + openchord.nbr_smarts(a))
+    retsmarts.append(obchord.atom_sym(a,True) + obchord.nbr_smarts(a))
  return retsmarts
 else:
  # bad mol (bad smiles)
@@ -26,24 +26,24 @@ Is 'return a table of SMARTS of each atom and optionally its nearest neighbors; 
 
 Create Or Replace Function _OCSCHEMA_.bonds(smi Text, nbrflag Integer)
  Returns SetOf text As $EOPY$
-import openchord
+import obchord
 import openbabel
 
 retsmarts = []
-oc=openchord.openchord(GD)
+oc=obchord.obchord(GD)
 mol = oc.parse_smi(smi)
 if mol:
  for b in openbabel.OBMolBondIter(mol):
   a1 = b.GetBeginAtom()
   a2 = b.GetEndAtom()
-  a1sma = openchord.atom_sym(a1,True)
-  a2sma = openchord.atom_sym(a2,True)
+  a1sma = obchord.atom_sym(a1,True)
+  a2sma = obchord.atom_sym(a2,True)
   if nbrflag < 0:
    a1nbr = ""
    a2nbr = ""
   else:
-   a1nbr = openchord.nbr_smarts(a1,a2)
-   a2nbr = openchord.nbr_smarts(a2,a1)
+   a1nbr = obchord.nbr_smarts(a1,a2)
+   a2nbr = obchord.nbr_smarts(a2,a1)
 
   # use a symbol for every bond type
   if   b.IsSingle():   bnd = "-"
@@ -80,10 +80,10 @@ Is 'return a table of SMARTS of atoms in each bond and optionally their nearest 
 
 Create Or Replace Function _OCSCHEMA_.fragments(smi Text, minpath Integer, maxpath Integer, smarts Boolean)
  Returns SetOf Text As $EOPY$
-import openchord
-oc = openchord.openchord(GD)
+import obchord
+oc = obchord.obchord(GD)
 mol = oc.parse_smi(smi)
-paths = openchord.make_mol_paths(mol, minpath, maxpath, smarts)
+paths = obchord.make_mol_paths(mol, minpath, maxpath, smarts)
 return paths
 $EOPY$ Language plpythonu Immutable;
 Comment on Function _OCSCHEMA_.fragments(Text,Integer,Integer,Boolean)
