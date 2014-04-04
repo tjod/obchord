@@ -23,7 +23,7 @@ def newCopy(properties):
   if properties:
     print "Copy properties (id, name, value) From Stdin;"
   else:
-    print "Copy structure (id, name, cansmiles, isosmiles, fp) From Stdin;"
+    print "Copy ob_structure (id, name, cansmiles, isosmiles, fp) From Stdin;"
 
 properties = False
 nchunk = 1000
@@ -48,7 +48,7 @@ Grant Usage On Schema %s To Public;
 Set search_path=%s;""" % (schema, schema, schema, schema)
 
 print """
-Create Table structure (
+Create Table ob_structure (
  id Integer Primary Key,
  name Text,
  cansmiles Text,

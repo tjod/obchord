@@ -15,4 +15,4 @@ fi
 
 $DROPDB $DB
 $CREATEDB $DB
-bash installdb $DB
+sudo -u postgres bash installdb $DB

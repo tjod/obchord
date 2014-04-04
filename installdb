@@ -24,13 +24,13 @@ Create Schema $OC_SCHEMA;
 Comment On Schema $OC_SCHEMA Is 'function for general use with openbabel or rdkit';
 Grant Usage On Schema $OC_SCHEMA to public;
 EOSQL
-sudo -u postgres $CREATELANG plpythonu $DB
-sed s/_OCSCHEMA_/$OC_SCHEMA/g < varbit.sql.in | sudo -u postgres $PSQL $DB
-sed s/_SCHEMA_/$OB_SCHEMA/g < openbabel-core.sql.in | sudo -u postgres $PSQL $DB
+$CREATELANG plpythonu $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < varbit.sql.in | $PSQL $DB
+sed s/_SCHEMA_/$OB_SCHEMA/g   < openbabel-core.sql.in | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < bits.sql.in | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < public166keys.sql.in | sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < similarity.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < amw.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < tpsa.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < glogp.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
-sed s/_OCSCHEMA_/$OC_SCHEMA/g < fragments.sql.in | sudo -u postgres $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < fragments.sql.in | $PSQL $DB
