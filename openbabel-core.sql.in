@@ -561,6 +561,21 @@ Comment On FUNCTION _SCHEMA_.avg_mw(text)
 Is 'return average molecular weight of input smiles';
 
 ---------------------------------------------------------------------------------------------------
+Create Or Replace Function _SCHEMA_.formula(smi Text) Returns Text As $EOPY$
+import openbabel
+import obchord
+oc=obchord.obchord(GD)
+mol = oc.parse_smi(smi)
+if mol:
+ return mol.GetFormula()
+else:
+ plpy.error("Error in input smiles")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.formula(text)
+Is 'return molecular formula of input smiles';
+
+---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.exact_mass(smi Text) Returns Double Precision As $EOPY$
 import openbabel
 import obchord
