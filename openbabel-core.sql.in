@@ -472,22 +472,33 @@ oc=obchord.obchord(GD)
 # make copy in order to alter mol
 mol = openbabel.OBMol(oc.parse_smi(smi))
 if mol:
- pass
+  pass
 else:
- return None
+  return None
 
 hcount = 0
+charge = mol.GetTotalCharge()
 for a in openbabel.OBMolAtomIter(mol):
   hcount += a.ImplicitHydrogenCount() + a.ExplicitHydrogenCount()
-if mol.NumBonds() > 0:
- for b in openbabel.OBMolBondIter(mol):
-   b.SetBondOrder(1)
-   b.UnsetAromatic()
-for a in openbabel.OBMolAtomIter(mol):
-  a.UnsetAromatic()
-  a.SetFormalCharge(0)
 
-return oc.writestring(mol,"can","i") + '.H' + str(hcount)
+mol.BeginModify()
+for a in openbabel.OBMolAtomIter(mol):
+  if a.IsHydrogen():
+    mol.DeleteAtom(a)
+  else:
+    a.UnsetAromatic()
+    a.SetFormalCharge(0)
+
+for b in openbabel.OBMolBondIter(mol):
+  if b.GetBeginAtom().IsHydrogen() or b.GetEndAtom().IsHydrogen():
+    mol.DeleteBond(b)
+  else:
+    b.SetBondOrder(1)
+    b.UnsetAromatic()
+
+mol.EndModify()
+return "%s%s%d%+d" % (oc.writestring(mol,"can","i"),'.H',hcount,charge)
+#return oc.writestring(mol,"can","i") + '.H' + str(hcount)
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.graph(text)
 Is 'return graph of input smiles, i.e. atom symbols and connectivity with all bond orders set to one, followed by H atom count.  useful for comparing tautomers';
