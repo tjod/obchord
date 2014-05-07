@@ -389,9 +389,8 @@ Create or Replace FUNCTION _SCHEMA_.contains(Bit, Bit) Returns Boolean As $EOSQL
 $EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.contains(bit, bit)
  Is 'return true if first bit string contain all the bits of second';
-
 ---------------------------------------------------------------------------------------------------
---Drop Type _SCHEMA_.named_property Cascade;
+Drop Type If Exists _SCHEMA_.named_property Cascade;
 Create Type _SCHEMA_.named_property As (name Text, value Text, tagorder integer);
 Comment On Type _SCHEMA_.named_property
 Is 'composite data type used in molfile_properties containing name/value pairs for each molfile tag';

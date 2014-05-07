@@ -1,0 +1,14 @@
+Drop Type If Exists _SCHEMA_.query Cascade;
+Create Type _SCHEMA_.query As (smiles Text, fp varbit, fpbits integer);
+Comment On Type _SCHEMA_.query
+Is 'composite data type used in searches to store'; 
+
+Create Or Replace Function _SCHEMA_.query(smiles Text) Returns _SCHEMA_.query As $EOSQL$
+ With fptmp as (Select _SCHEMA_.fp($1))
+  Select $1 as smiles, fptmp.fp as fp, _OCSCHEMA_.nbits_set(fptmp.fp) as fpbits from fptmp;
+
+$EOSQL$ Language sql Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.query(text)
+Is 'return query data type for input smiles';
+
+

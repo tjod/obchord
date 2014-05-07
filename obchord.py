@@ -465,7 +465,7 @@ class obchord:
     return omol
 
   def contains(self,mol,mapper):
-    # returns true is mol is a superstructure of/contains qsmi
+    # returns true if mol is a superstructure of/contains qsmi
     # using static in Global saves lots of allocation/free execution time
     #isomap = openbabel.vpairUIntUInt()
     del self.isomap[0:]
