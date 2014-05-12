@@ -5,7 +5,7 @@ PG_LIB = `pg_config --pkglibdir`
 #CC = /usr/bin/gcc -fpic
 
 varbit.so: varbit.c
-	$(CC) $(INCS) -shared -o $@ $?
+	$(CC) $(INCS) -fPIC -shared -o $@ $?
 
 install:
 	cp varbit.so ${PG_LIB}
