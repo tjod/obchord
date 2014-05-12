@@ -234,7 +234,7 @@ Is 'return file converted from input file.  CAUTION: using incorrect format type
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.textformat_to_textformat(infil Text, infmt Text, outfmt Text, outopt Text)
  Returns Text As $EOSQL$
- Select encode(_SCHEMA_.anyformat_to_anyformat(convert_to($1,'utf8'), $2, $3, $4),'escape');
+ Select convert_from(_SCHEMA_.anyformat_to_anyformat(convert_to($1,'utf8'), $2, $3, $4),'utf8');
 $EOSQL$ Language SQL Immutable;
 Comment On FUNCTION _SCHEMA_.textformat_to_textformat(text,text,text,text)
 Is 'return "file" converted from input "file".';
