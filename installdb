@@ -36,3 +36,4 @@ sed s/_OCSCHEMA_/$OC_SCHEMA/g < amw.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQ
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < tpsa.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < glogp.sql.in |  sed s/_SCHEMA_/$OB_SCHEMA/g | $PSQL $DB
 sed s/_OCSCHEMA_/$OC_SCHEMA/g < fragments.sql.in | $PSQL $DB
+sed s/_OCSCHEMA_/$OC_SCHEMA/g < recap.sql.in | $PSQL $DB

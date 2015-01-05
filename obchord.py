@@ -452,6 +452,7 @@ class obchord:
     for i in range(0,len(self.fp)):self.fp[i] = 0
     self.fpr.GetFingerprint(mol,self.fp,nbits)
     return "".join(["%08x" % x for x in self.fp])
+    #return [ i for i in range(nbits) if self.fpr.GetBit(self.fp,i) ]
 
   def substructure(self, amol, atoms):
     # return substructure of mol containing only atoms
