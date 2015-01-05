@@ -1,0 +1,135 @@
+Drop Table If Exists _OCSCHEMA_.recap;
+Create Table _OCSCHEMA_.recap (id integer, description text, smarts text);
+-- each smarts must contain only two atoms representing the bond to be broken.
+-- of course, each atom may be a complex atom smarts, ala [$(whatever)]
+Copy _OCSCHEMA_.recap (id, description, smarts) From STDIN;
+1	amide	[$([C;!$(C([#7])[#7])](=!@[O]))]!@[$([#7;+0;!D1])]
+2	ester	[$(C=!@O)]!@[$([O;+0])]
+3	amine	[$([N;!D1;+0;!$(N-C=[#7,#8,#15,#16])](-!@[*]))]-!@[$([*])]
+4	urea	[$(C(=!@O)([#7;+0;D2,D3])!@[#7;+0;D2,D3])]!@[$([#7;+0;D2,D3])]
+5	ether	[$([O;+0](-!@[#6!$(C=O)])-!@[#6!$(C=O)])]-!@[$([#6!$(C=O)])]
+6	olefin	C=!@C
+7	quaternaryN	[N;+1;D4]!@[#6]
+8	aromaticN-aliphaticC	[$([n;+0])]-!@C
+9	lactamN-aromaticC	[$([O]=[C]-@[N;+0])]-!@[$([C])]
+10	aromaticC-aromaticC	c-!@c
+11	sulphonamide	[$([#7;+0;D2,D3])]-!@[$([S](=[O])=[O])]
+\.
+Grant Select On _OCSCHEMA_.recap To Public;
+
+--Create Or Replace Function recap(smiles Text) Returns Text As $EOSQL$
+Create Or Replace Function _OCSCHEMA_.recap(smiles Text) Returns Text As $EOSQL$
+import openbabel
+
+class recap:
+  # RECAP-Retrosynthetic Combinatorial Analysis Procedure
+  # J. Chem. Inf. Comput. Sci. 1998, 38, 511-522
+  def __init__(self, mol, minsize=5):
+    self.mol = mol;
+    # minimum allowed size (atom count) of fragment
+    self.minsize = minsize;
+    # bonded atom pairs populated by the apply method,
+    # subsequently used by split and add_star
+    self.atom_pairs = list()
+
+  def apply(self, pat, patnum):
+    if pat.Match(self.mol):
+      # find all atom pairs that match
+      for p in pat.GetUMapList():
+        i = 0
+        atoms = list()
+        for a in openbabel.OBMolAtomIter(self.mol):
+          i += 1
+          if i in p:
+            atoms.append(a)
+        if self.small_fragment(atoms[0], atoms[1]):
+          #print True
+          pass
+        else:
+          atoms.append(patnum)
+          self.atom_pairs.append(atoms)
+          #print False
+      return True
+    else:
+      return False
+
+  def split(self):
+    for a in self.atom_pairs:
+      a[0].SetIsotope(a[2])
+      a[1].SetIsotope(a[2])
+      bond = a[0].GetBond(a[1])
+      self.mol.DeleteBond(bond)
+
+  def add_star(self):
+    for pair in self.atom_pairs:
+      self.mol.AddBond(pair[0].GetIdx(),self.mol.NewAtom().GetIdx(),1)
+      self.mol.AddBond(pair[1].GetIdx(),self.mol.NewAtom().GetIdx(),1)
+
+  def decide_multiples(self):
+    # some smarts (e.g. ether, amine) allow multiple bonds to the
+    #  central atom to be broken.  Yet it appears the central atom
+    #  needs to be retained in one of the multiple fragments.
+    #  If multiple fragments, let it stay with the smallest fragment.
+    #  If tied, pick the first fragment.
+    multiples = [0]*self.mol.NumAtoms()
+    for pair in self.atom_pairs:
+      multiples[pair[0].GetIdx()] += 1
+      multiples[pair[1].GetIdx()] += 1
+    #print multiples
+
+    currsize = -1
+    currpair = None
+    for pair in self.atom_pairs:
+      a = pair[0]
+      b = pair[1]
+      if multiples[a.GetIdx()] > 1 or multiples[b.GetIdx()] > 1:
+        # remove larger fragment(s) if a-b were broken
+        #print a.GetIdx(),b.GetIdx(),
+        fsize = self.fragment_size(a,b)
+        if currpair == None:
+          currpair = pair
+          currsize = fsize
+        else:
+          if fsize < currsize:
+            self.atom_pairs.remove(pair)
+          else:
+            self.atom_pairs.remove(currpair)
+            currpair = pair
+            currsize = fsize
+
+  def fragment_size(self, a, b):
+    # size of fragment b if a-b were broken
+    c1 = openbabel.vectorInt()
+    self.mol.FindChildren(c1,a.GetIdx(),b.GetIdx())
+    #for atom in c1:
+    #  if self.mol.GetAtom(atom).GetValence() == 1:
+    return 1+len(c1)
+ 
+  def small_fragment(self, a, b):
+    # if we were to break the bond between a and b,
+    #  would either fragment be too small?
+    #print a.GetIdx(), b.GetIdx(),
+    if self.fragment_size(a,b) < self.minsize: return True
+    if self.fragment_size(b,a) < self.minsize: return True
+
+    return False
+
+import obchord
+oc=obchord.obchord(GD)
+# make copy in order to alter mol
+amol = openbabel.OBMol(oc.parse_smi(smiles))
+Recap = recap(amol,4)
+rx = plpy.execute("Select * from _OCSCHEMA_.recap")
+for row in rx:
+  pat = oc.parse_sma(row["smarts"])
+  Recap.apply(pat, row["id"])
+
+Recap.decide_multiples()
+Recap.split()
+#Recap.add_star()
+return oc.writestring(amol,"can")
+
+$EOSQL$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _OCSCHEMA_.recap(text)
+--Comment On FUNCTION recap(text)
+Is 'return recap fragments for input smiles';
