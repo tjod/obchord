@@ -1,0 +1,39 @@
+In order to install openchord, take the following steps.
+You should either be logged in as root, or precede each of the commands with sudo.
+
+$ make
+$ make install
+
+In order to use openchord and the ob.* functions, you must have the openbabel/python scripting language installed.
+There is documentation about how to do this at http://openbabel.org/wiki/Python.
+There may also be synatpics packages (Ubuntu/Debian) or rpm packages (Redhat/CentOS/Fedora/SuSE)
+to make openbabel installation easier.
+
+Then install openchord:
+> python setup.py install
+
+Next, install the openbabel.* SQL functions into a new database (e.g. obchord)
+You must have the plpythonu language available in your installed postgres.
+There are synaptics and rpm packages for this,
+or if you compile postgres yourself, use the --with-python option.
+
+$ createdb obchord
+will create a database called obchord.
+
+Next, install the functions into an existing database (obchord).
+In order to install the openchord and ob.* function, you must have administrator
+privileges for postgres.  If your username has enough postgres privilege
+$ bash installdb obchord
+otherwise login as a privileged postgres user or do something like this
+$ sudo -u postgres bash installdb obchord
+
+Now, you should be able to connect to obchord or your-db and do something like:
+ select ob.cansmiles('c1ccccc1C(=O)NC');
+and get the result
+  obchord=#  select ob.cansmiles('c1ccccc1C(=O)NC');
+     cansmiles    
+ -----------------
+  CNC(=O)c1ccccc1
+ (1 row)
+
+
