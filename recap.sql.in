@@ -58,7 +58,8 @@ class recap:
       a[0].SetIsotope(a[2])
       a[1].SetIsotope(a[2])
       bond = a[0].GetBond(a[1])
-      self.mol.DeleteBond(bond)
+      # bond could be null if already deleted when smarts matched multiple times
+      if bond: self.mol.DeleteBond(bond)
 
   def add_star(self):
     for pair in self.atom_pairs:
