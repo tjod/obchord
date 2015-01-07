@@ -18,7 +18,7 @@ Copy _OCSCHEMA_.recap (id, description, smarts) From STDIN;
 Grant Select On _OCSCHEMA_.recap To Public;
 
 --Create Or Replace Function recap(smiles Text) Returns Text As $EOSQL$
-Create Or Replace Function _OCSCHEMA_.recap(smiles Text) Returns Text As $EOSQL$
+Create Or Replace Function _OCSCHEMA_.recap(smiles Text, label boolean) Returns Text As $EOSQL$
 import openbabel
 
 class recap:
@@ -53,10 +53,11 @@ class recap:
     else:
       return False
 
-  def split(self):
+  def split(self, label):
     for a in self.atom_pairs:
-      a[0].SetIsotope(a[2])
-      a[1].SetIsotope(a[2])
+      if label:
+        a[0].SetIsotope(a[2])
+        a[1].SetIsotope(a[2])
       bond = a[0].GetBond(a[1])
       # bond could be null if already deleted when smarts matched multiple times
       if bond: self.mol.DeleteBond(bond)
@@ -126,11 +127,16 @@ for row in rx:
   Recap.apply(pat, row["id"])
 
 Recap.decide_multiples()
-Recap.split()
+Recap.split(label)
 #Recap.add_star()
 return oc.writestring(amol,"can")
 
 $EOSQL$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _OCSCHEMA_.recap(text, boolean)
+Is 'return recap fragments for input smiles with optional isotope labels';
+
+Create Or Replace Function _OCSCHEMA_.recap(smiles Text) Returns Text As $EOSQL$
+  Select _OCSCHEMA_.recap($1, false);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _OCSCHEMA_.recap(text)
---Comment On FUNCTION recap(text)
-Is 'return recap fragments for input smiles';
+Is 'return recap fragments for input smiles without isotope labels';
