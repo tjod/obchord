@@ -17,8 +17,7 @@ Copy _OCSCHEMA_.recap (id, description, smarts) From STDIN;
 \.
 Grant Select On _OCSCHEMA_.recap To Public;
 
---Create Or Replace Function recap(smiles Text) Returns Text As $EOSQL$
-Create Or Replace Function _OCSCHEMA_.recap(smiles Text, label boolean) Returns Text As $EOSQL$
+Create Or Replace Function _OCSCHEMA_.recap_set(smiles Text, label boolean) Returns SetOf Text As $EOPY$
 import openbabel
 
 class recap:
@@ -129,14 +128,27 @@ for row in rx:
 Recap.decide_multiples()
 Recap.split(label)
 #Recap.add_star()
-return oc.writestring(amol,"can")
+#return [oc.writestring(amol,"can")]
+return oc.writestring(amol,"can").split('.')
 
-$EOSQL$ Language plpythonu Immutable Returns Null On Null Input;
-Comment On FUNCTION _OCSCHEMA_.recap(text, boolean)
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _OCSCHEMA_.recap_set(text, boolean)
 Is 'return recap fragments for input smiles with optional isotope labels';
 
+Create Or Replace Function _OCSCHEMA_.recap_set(smiles Text) Returns SetOf Text As $EOSQL$
+  Select _OCSCHEMA_.recap_set($1, false);
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _OCSCHEMA_.recap_set(text)
+Is 'return recap fragments for input smiles without isotope labels';
+
+Create Or Replace Function _OCSCHEMA_.recap(smiles Text, label boolean) Returns Text As $EOSQL$
+  Select string_agg(recap_set,'.') From (Select _OCSCHEMA_.recap_set($1,$2)) as atmp;
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
+Comment On FUNCTION _OCSCHEMA_.recap(text, boolean)
+Is 'return recap fragments as dot-separated smiles for input smiles with optional isotope labels';
+
 Create Or Replace Function _OCSCHEMA_.recap(smiles Text) Returns Text As $EOSQL$
-  Select _OCSCHEMA_.recap($1, false);
+  Select string_agg(recap_set,'.') From (Select _OCSCHEMA_.recap_set($1, false)) As atmp;
 $EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _OCSCHEMA_.recap(text)
-Is 'return recap fragments for input smiles without isotope labels';
+Is 'return recap fragments as dot-separated smiles for input smiles without isotope labels';
