@@ -213,7 +213,10 @@ if amol:
   mol = openbabel.OBMol(amol)
   #if "%" in outopt: mol.DeleteNonPolarHydrogens()
   if outopt != None and "%" in outopt: mol.DeleteHydrogens()
-  if outopt != None and "#" in outopt: mol.SetTitle("")
+  if outopt != None and "#" in outopt:
+    pass
+  else:
+    mol.SetTitle("")
 else:
   plpy.warning("Error parsing input text")
   return None
@@ -252,7 +255,7 @@ Comment On FUNCTION _SCHEMA_.smiles_to_molfile(text)
 Is 'return "molfile" converted from input smiles';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.molfile_to_smiles(molfil Text) Returns Text As $EOSQL$
-  Select _SCHEMA_.textformat_to_textformat($1, 'mol', 'can', '#')
+  Select _SCHEMA_.textformat_to_textformat($1, 'mol', 'can')
 $EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.molfile_to_smiles(text)
 Is 'return smiles from input "molfile"';

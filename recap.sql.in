@@ -119,6 +119,7 @@ import obchord
 oc=obchord.obchord(GD)
 # make copy in order to alter mol
 amol = openbabel.OBMol(oc.parse_smi(smiles))
+amol.SetTitle("")
 Recap = recap(amol,4)
 rx = plpy.execute("Select * from _OCSCHEMA_.recap")
 for row in rx:
