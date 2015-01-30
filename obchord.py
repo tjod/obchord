@@ -459,10 +459,14 @@ class obchord:
     delatom = list()
     # copy amol to alter it
     omol = openbabel.OBMol(amol)
+    omol.DeleteData(omol.GetData())
     for idx in range(omol.NumAtoms()):
-      if not idx in atoms: delatom.append(omol.GetAtom(1+idx))
+      if not idx in atoms:
+        delatom.append(omol.GetAtom(1+idx))
+    omol.BeginModify()
     for a in delatom:
       omol.DeleteAtom(a)
+    omol.EndModify()
     return omol
 
   def contains(self,mol,mapper):
