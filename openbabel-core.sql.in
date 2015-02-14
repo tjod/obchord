@@ -308,6 +308,36 @@ Comment On FUNCTION _SCHEMA_.count_matches(text, text)
 Is 'return number of times input smiles in arg#1 matches input smarts in arg#2';
 
 ---------------------------------------------------------------------------------------------------
+Drop Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer);
+Create Or Replace Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns Integer[] As $EOPY$
+import openbabel
+import obchord
+oc=obchord.obchord(GD)
+
+amol = openbabel.OBMol(oc.parse_format(intxt,infmt))
+if amol:
+  bmol = openbabel.OBMol(oc.parse_format(btxt,bfmt))
+  if bmol:
+   query = openbabel.CompileMoleculeQuery(bmol)
+   mapper = openbabel.OBIsomorphismMapper.GetInstance(query)
+   if query and mapper:
+    isomorph = openbabel.vpairUIntUInt()
+    mapper.MapFirst(amol, isomorph)
+    return [b+istart for (a,b) in isomorph]
+   else:
+    plpy.warning("Error making input mapper")
+    return None
+  else:
+   plpy.warning("Error in input query")
+   return None
+
+else:
+ plpy.error("Error in input mol")
+ return None
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.list_match(text, text, text, text, integer, integer)
+Is 'return array of atoms of input file in arg#1 matching input smarts in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
+---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.list_match(smi Text, sma Text, imatch Integer, istart Integer) Returns Integer[] As $EOPY$
 #import openbabel
 import obchord
