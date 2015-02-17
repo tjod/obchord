@@ -308,7 +308,14 @@ Comment On FUNCTION _SCHEMA_.count_matches(text, text)
 Is 'return number of times input smiles in arg#1 matches input smarts in arg#2';
 
 ---------------------------------------------------------------------------------------------------
-Create Or Replace Function _SCHEMA_.list_map(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns Integer[] As $EOPY$
+--Drop Type If Exists _SCHEMA_.atom_map Cascade;
+Create Type _SCHEMA_.atom_map As (a Integer, b Integer);
+Comment On Type _SCHEMA_.atom_map
+Is 'composite data type used to return atom maps between two input mol files';
+
+--Drop Function If Exists _SCHEMA_.map_set(Text, Text, Text, Text, Integer);
+Create Or Replace Function _SCHEMA_.map_set(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer)
+ Returns SetOf _SCHEMA_.atom_map As $EOPY$
 import openbabel
 import obchord
 oc=obchord.obchord(GD)
@@ -322,7 +329,12 @@ if amol:
    if query and mapper:
     isomorph = openbabel.vpairUIntUInt()
     mapper.MapFirst(amol, isomorph)
-    return [b+istart for (a,b) in isomorph]
+    #return [a+istart for (a,b) in isomorph]
+    #return [(a+istart,b+istart) for (a,b) in isomorph]
+    maps = list()
+    for (a,b) in isomorph:
+      maps.append({"a": b+istart, "b": a+istart})
+    return maps
    else:
     plpy.warning("Error making mapper")
     return None
@@ -334,51 +346,17 @@ else:
  plpy.error("Error in input mol")
  return None
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.map_set(text, text, text, text, integer)
+Is 'return rows of atoms pairs for atoms in input file in arg#1 mapping to input file in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
+
+--Drop Function If Exists _SCHEMA_.list_map(Text, Text, Text, Text, Integer);
+Create Or Replace Function _SCHEMA_.list_map(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns Integer[] As $EOSQL$
+  Select array_agg((map_set).a) From (Select ob.map_set($1,$2,$3,$4,$5) from pdbqt) atmp ;
+$EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.list_map(text, text, text, text, integer)
-Is 'return array of atoms of input file in arg#1 matching input smarts in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
----------------------------------------------------------------------------------------------------
-Drop Type If Exists _SCHEMA_.atom Cascade;
-Create Type _SCHEMA_.atom As (id Integer, name Text, atomic_number Integer, x Float, y Float, z Float,
- formal_charge Float, partial_charge Float);
-Comment On Type _SCHEMA_.atom
-Is 'composite data type used to return atom data from input mol file';
-Drop Function _SCHEMA_.mol_atoms(intxt Text, infmt Text);
-Create Or Replace Function _SCHEMA_.atoms(intxt Text, infmt Text) Returns SetOf _SCHEMA_.atom As $EOPY$
-import openbabel
-import obchord
-oc=obchord.obchord(GD)
+Is 'return array of atoms of input file in arg#1 mapping to input file in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
 
-mol = openbabel.OBMol(oc.parse_format(intxt,infmt))
-rec = list()
-if mol:
- atoms = list()
- tbl = openbabel.OBElementTable()
- for a in openbabel.OBMolAtomIter(mol):
-   r = a.GetResidue()
-   if r:
-     name = r.GetAtomID(a)
-   else:
-     name = tbl.GetSymbol(a.GetAtomicNum())
-   atoms.append({
-       'id' : a.GetIndex(),
-       'name' : name,
-       'atomic_number' : a.GetAtomicNum(),
-       'x' : a.GetX(),
-       'y' : a.GetY(),
-       'z' : a.GetZ(),
-       'formal_charge' : a.GetFormalCharge(),
-       'partial_charge' : a.GetPartialCharge()
-   })
- return atoms
-else:
- plpy.error("Error in input mol")
- return None
-
-$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
-Comment On FUNCTION _SCHEMA_.mol_atoms(Text, Text)
-Is 'return info for every atom in an input molecule';
----------------------------------------------------------------------------------------------------
---Drop Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer);
+--Drop Function If Exists _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer);
 Create Or Replace Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns SetOf Integer[] As $EOPY$
 import openbabel
 import obchord
@@ -408,8 +386,49 @@ else:
  plpy.error("Error in input mol")
  return None
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
-Comment On FUNCTION _SCHEMA_.list_match(text, text, text, text, integer, integer)
-Is 'return rows of array of atoms of input file in arg#1 matching input smarts in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
+Comment On FUNCTION _SCHEMA_.list_maps(text, text, text, text, integer)
+Is 'return array of atoms of input file in arg#1 mapping to input file in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
+---------------------------------------------------------------------------------------------------
+--Drop Type If Exists _SCHEMA_.atom Cascade;
+Create Type _SCHEMA_.atom As (id Integer, name Text, atomic_number Integer, x Float, y Float, z Float,
+ formal_charge Float, partial_charge Float);
+Comment On Type _SCHEMA_.atom
+Is 'composite data type used to return atom data from input mol file';
+
+Create Or Replace Function _SCHEMA_.atoms(intxt Text, infmt Text) Returns SetOf _SCHEMA_.atom As $EOPY$
+import openbabel
+import obchord
+oc=obchord.obchord(GD)
+
+mol = openbabel.OBMol(oc.parse_format(intxt,infmt))
+rec = list()
+if mol:
+ atoms = list()
+ tbl = openbabel.OBElementTable()
+ for a in openbabel.OBMolAtomIter(mol):
+   r = a.GetResidue()
+   if r:
+     name = r.GetAtomID(a)
+   else:
+     name = tbl.GetSymbol(a.GetAtomicNum())
+   atoms.append({
+       'id' : a.GetIndex()+1,
+       'name' : name,
+       'atomic_number' : a.GetAtomicNum(),
+       'x' : a.GetX(),
+       'y' : a.GetY(),
+       'z' : a.GetZ(),
+       'formal_charge' : a.GetFormalCharge(),
+       'partial_charge' : a.GetPartialCharge()
+   })
+ return atoms
+else:
+ plpy.error("Error in input mol")
+ return None
+
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.atoms(Text, Text)
+Is 'return info for every atom in an input molecule';
 ---------------------------------------------------------------------------------------------------
 Create Or Replace Function _SCHEMA_.list_match(smi Text, sma Text, imatch Integer, istart Integer) Returns Integer[] As $EOPY$
 #import openbabel
@@ -496,7 +515,7 @@ $EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.contains(bit, bit)
  Is 'return true if first bit string contain all the bits of second';
 ---------------------------------------------------------------------------------------------------
-Drop Type If Exists _SCHEMA_.named_property Cascade;
+--Drop Type If Exists _SCHEMA_.named_property Cascade;
 Create Type _SCHEMA_.named_property As (name Text, value Text, tagorder integer);
 Comment On Type _SCHEMA_.named_property
 Is 'composite data type used in molfile_properties containing name/value pairs for each molfile tag';
