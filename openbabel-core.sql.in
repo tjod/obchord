@@ -351,7 +351,7 @@ Is 'return rows of atoms pairs for atoms in input file in arg#1 mapping to input
 
 --Drop Function If Exists _SCHEMA_.list_map(Text, Text, Text, Text, Integer);
 Create Or Replace Function _SCHEMA_.list_map(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns Integer[] As $EOSQL$
-  Select array_agg((map_set).a) From (Select ob.map_set($1,$2,$3,$4,$5) from pdbqt) atmp ;
+  With amap As (Select ob.map_set($1,$2,$3,$4,$5)) Select array_agg((map_set).a) From amap;
 $EOSQL$ Language SQL Immutable Returns Null On Null Input;
 Comment On FUNCTION _SCHEMA_.list_map(text, text, text, text, integer)
 Is 'return array of atoms of input file in arg#1 mapping to input file in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
