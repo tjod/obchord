@@ -408,7 +408,7 @@ if mol:
  for a in openbabel.OBMolAtomIter(mol):
    r = a.GetResidue()
    if r:
-     name = r.GetAtomID(a)
+     name = r.GetAtomID(a).strip()
    else:
      name = tbl.GetSymbol(a.GetAtomicNum())
    atoms.append({
