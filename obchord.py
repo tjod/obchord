@@ -322,8 +322,8 @@ class obchord:
 #   if not self.GOB.has_key("fobc"): self.GOB["fobc"] = openbabel.OBConversion()
 #   self.fobc = self.GOB["fobc"]
 #   self.fobc.SetInAndOutFormats("sdf","can")
-    if not self.GOB.has_key("fmol"): self.GOB["fmol"] = openbabel.OBMol()
-    self.fmol = self.GOB["fmol"]
+#   if not self.GOB.has_key("fmol"): self.GOB["fmol"] = openbabel.OBMol()
+#   self.fmol = self.GOB["fmol"]
     if not self.GOB.has_key('fp'): self.GOB['fp'] = openbabel.vectorUnsignedInt()
     if not self.GOB.has_key('fpr'): self.GOB['fpr'] = openbabel.OBFingerprint.FindFingerprint('FP2')
     self.fp = self.GOB["fp"]
@@ -419,11 +419,12 @@ class obchord:
     """parse string formatted as fmt and return mol
     """
     fobc = openbabel.OBConversion()
+    fmol = openbabel.OBMol()
     if fobc.SetInFormat(fmt):
       try:
-        self.fmol.Clear();
-        if fobc.ReadString(self.fmol, strfile):
-          return self.fmol
+        #self.fmol.Clear();
+        if fobc.ReadString(fmol, strfile):
+          return fmol
       except:
         raise ValueError("Error parsing input file")
     else:

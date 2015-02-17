@@ -334,8 +334,47 @@ else:
  plpy.error("Error in input mol")
  return None
 $EOPY$ Language plpythonu Immutable Returns Null On Null Input;
-Comment On FUNCTION _SCHEMA_.list_match(text, text, text, text, integer, integer)
+Comment On FUNCTION _SCHEMA_.list_map(text, text, text, text, integer)
 Is 'return array of atoms of input file in arg#1 matching input smarts in arg#3. arg#5 indicates index of first atom, typically 1 or 0';
+---------------------------------------------------------------------------------------------------
+Drop Type If Exists _SCHEMA_.atom Cascade;
+Create Type _SCHEMA_.atom As (id Integer, name Text, atomic_number Integer, x Float, y Float, z Float,
+ formal_charge Float, partial_charge Float);
+Drop Function _SCHEMA_.mol_atoms(intxt Text, infmt Text);
+Create Or Replace Function _SCHEMA_.atoms(intxt Text, infmt Text) Returns SetOf _SCHEMA_.atom As $EOPY$
+import openbabel
+import obchord
+oc=obchord.obchord(GD)
+
+mol = openbabel.OBMol(oc.parse_format(intxt,infmt))
+rec = list()
+if mol:
+ atoms = list()
+ tbl = openbabel.OBElementTable()
+ for a in openbabel.OBMolAtomIter(mol):
+   r = a.GetResidue()
+   if r:
+     name = r.GetAtomID(a)
+   else:
+     name = tbl.GetSymbol(a.GetAtomicNum())
+   atoms.append({
+       'id' : a.GetIndex(),
+       'name' : name,
+       'atomic_number' : a.GetAtomicNum(),
+       'x' : a.GetX(),
+       'y' : a.GetY(),
+       'z' : a.GetZ(),
+       'formal_charge' : a.GetFormalCharge(),
+       'partial_charge' : a.GetPartialCharge()
+   })
+ return atoms
+else:
+ plpy.error("Error in input mol")
+ return None
+
+$EOPY$ Language plpythonu Immutable Returns Null On Null Input;
+Comment On FUNCTION _SCHEMA_.mol_atoms(Text, Text)
+Is 'return info for every atom in an input molecule';
 ---------------------------------------------------------------------------------------------------
 --Drop Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer);
 Create Or Replace Function _SCHEMA_.list_maps(intxt Text, infmt Text, btxt Text, bfmt Text, istart Integer) Returns SetOf Integer[] As $EOPY$
