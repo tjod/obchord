@@ -340,6 +340,8 @@ Is 'return array of atoms of input file in arg#1 matching input smarts in arg#3.
 Drop Type If Exists _SCHEMA_.atom Cascade;
 Create Type _SCHEMA_.atom As (id Integer, name Text, atomic_number Integer, x Float, y Float, z Float,
  formal_charge Float, partial_charge Float);
+Comment On Type _SCHEMA_.atom
+Is 'composite data type used to return atom data from input mol file';
 Drop Function _SCHEMA_.mol_atoms(intxt Text, infmt Text);
 Create Or Replace Function _SCHEMA_.atoms(intxt Text, infmt Text) Returns SetOf _SCHEMA_.atom As $EOPY$
 import openbabel
